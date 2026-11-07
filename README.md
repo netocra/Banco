@@ -6,7 +6,7 @@ Un **Autómata Finito Determinista** lee la secuencia de cargos de cada tarjeta 
 
 ## Cómo correrlo
 
-Requiere Node 20 o más reciente. No hay dependencias que instalar.
+Requiere Node 20 o más reciente. La app no tiene dependencias; `npm install` sólo hace falta para las pruebas de navegador.
 
 ```bash
 npm start            # levanta el banco y la tienda en http://localhost:3000
@@ -14,7 +14,20 @@ npm run ataque       # en otra terminal: alguien con los datos de la tarjeta de 
 npm run ataque -- --modo saldo   # mismo caso, pero con compras grandes que van bajando hasta que una pase
 npm run pruebas      # corre cadenas de prueba por el AFD e imprime la traza
 npm run pruebas -- cccg cctcc   # evalúa cadenas propias
+npm test             # pipeline de pruebas: DEV → QA → UAT
 ```
+
+## Pruebas
+
+`npm test` corre tres etapas en orden; si una falla, las siguientes no se ejecutan.
+
+| Etapa | Qué prueba | Comando |
+|---|---|---|
+| DEV | Unitarias: que δ sea total, alcanzabilidad, el lenguaje reconocido, límites de los umbrales, Luhn | `npm run test:dev` |
+| QA | Integración contra el servidor real: sesiones, montos inválidos, transferencias, pasarela, ráfaga, sondeo de saldo, perfil del cliente, alertas, tienda, archivos estáticos, eventos en vivo, entradas maliciosas, concurrencia | `npm run test:qa` |
+| UAT | Flujos completos en Chromium: login, operaciones, tienda, alertas en vivo, ataque, XSS, diseño en celular, sin internet | `npm run test:uat` |
+
+La UAT necesita Chromium (`/usr/bin/chromium` o la ruta en `CHROMIUM_PATH`) y `npm install` para `playwright-core`. Se corre sin acceso a internet a propósito, para asegurar que la demo funcione sin red.
 
 - Banco: http://localhost:3000/banco/ (usuarios `carlos / 1234` y `ana / 4321`)
 - Tienda: http://localhost:3000/tienda/ (paga con los datos de la tarjeta que ves en el banco al darle al ojo)
@@ -59,7 +72,7 @@ Antes de entrar al AFD, cada intento de cargo se traduce a un símbolo usando su
 |      | c  | g  | r  | t  |
 |------|----|----|----|----|
 | →q0  | q1 | q1 | q3 | q0 |
-| q1   | q2 | q2 | q3 | q0 |
+| q1   | q2 | q2 | q2 | q0 |
 | q2   | q5 | q5 | q5 | q0 |
 | q3   | q2 | q5 | q4 | q0 |
 | *q4  | q4 | q6 | q4 | q0 |
@@ -85,9 +98,12 @@ Los umbrales están en `server/afd.js`.
 server/afd.js            el AFD: Σ, Q, δ, F y la traducción de cargos a símbolos
 server/pagos.js          pasarela de pagos: alimenta el AFD y decide aprobar, alertar o bloquear
 server/server.js         API y archivos estáticos (sólo módulos nativos de Node)
+server/dinero.js         validación de montos y redondeo a centavos
 public/banco/            app del cliente, con alertas en tiempo real (SSE)
 public/tienda/           tienda con carrito y pago con tarjeta
 server/tienda.js         catálogo de TechoStore y cobro (calcula el total en el servidor)
 scripts/card-tester.js   simulador del ataque: compras automatizadas en TechoStore (sólo servidor local)
 scripts/probar-afd.js    pruebas del autómata para el reporte
+scripts/pipeline.js      corre las etapas de prueba DEV → QA → UAT
+test/dev, test/qa, test/uat   pruebas automatizadas por etapa
 ```
