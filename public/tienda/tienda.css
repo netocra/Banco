@@ -161,9 +161,10 @@ body {
   border: 1.5px solid var(--border); border-radius: 8px;
   font-size: 1rem; background: var(--bg); color: var(--text);
   text-transform: none; letter-spacing: normal;
+  width: 100%; min-width: 0;
 }
 .modal input:focus { outline: none; border-color: var(--brand); }
-.row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .8rem; }
 .modal-actions { display: flex; gap: .7rem; }
 .error { color: var(--danger); font-size: .9rem; font-weight: 600; }
 
