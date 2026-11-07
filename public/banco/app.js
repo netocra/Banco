@@ -19,8 +19,7 @@ function fmt(amount) {
 
 function fecha(iso) {
   return new Date(iso).toLocaleString('es-MX', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
   });
 }
 
@@ -64,6 +63,7 @@ function openModal(id) {
   const modal = document.getElementById(id);
   modal.querySelectorAll('input').forEach(i => i.value = '');
   modal.querySelectorAll('.error-msg').forEach(e => e.classList.add('hidden'));
+  modal.querySelectorAll('[data-saldo]').forEach(e => (e.textContent = datos ? fmt(datos.saldo) : ''));
   modal.classList.remove('hidden');
 }
 
@@ -87,11 +87,17 @@ async function cargar() {
 
 function refreshDashboard() {
   const u = datos;
+  const hora = new Date().getHours();
+  document.getElementById('saludo').textContent = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
+  document.getElementById('avatar').textContent = u.nombre.split(' ').map(p => p[0]).slice(0, 2).join('');
   document.getElementById('nav-user').textContent = u.nombre;
   document.getElementById('nav-user-card').textContent = u.nombre.toUpperCase();
   document.getElementById('display-balance').textContent = fmt(u.saldo);
   document.getElementById('debit-card').classList.toggle('bloqueada', u.tarjeta.bloqueada);
   document.getElementById('lock-label').textContent = u.tarjeta.bloqueada ? 'Desbloquear' : 'Bloquear';
+  document.getElementById('lock-ayuda').textContent = u.tarjeta.bloqueada
+    ? 'Vuelve a permitir cargos con tu tarjeta.'
+    : 'Congela los cargos por tu seguridad.';
   renderCardData();
   renderAlertas();
   renderTransactions();
@@ -110,7 +116,16 @@ function renderTransactions() {
     return;
   }
 
-  const ETIQUETAS = { deposito: 'DEP', retiro: 'RET', transferencia: 'TRF', compra: 'CMP', rechazo: 'RCH' };
+  const flecha = (d) => `<svg viewBox="0 0 24 24"><path d="${d}" /></svg>`;
+  const ABAJO = 'M12 5v14M6 13l6 6 6-6';
+  const ARRIBA = 'M12 19V5M6 11l6-6 6 6';
+  function icono(tx) {
+    if (tx.tipo === 'rechazo') return '!';
+    if (tx.tipo === 'compra') return esc((tx.comercio ?? tx.descripcion).trim().charAt(0).toUpperCase());
+    if (tx.tipo === 'deposito') return flecha(ABAJO);
+    if (tx.tipo === 'retiro') return flecha(ARRIBA);
+    return flecha(tx.monto > 0 ? ABAJO : ARRIBA);
+  }
 
   list.innerHTML = datos.movimientos
     .map(tx => {
@@ -119,7 +134,7 @@ function renderTransactions() {
       return `
         <li class="${tx.tipo === 'rechazo' ? 'tx-rechazo' : ''}">
           <div class="tx-info">
-            <span class="tx-icon tx-icon--${tx.tipo}">${ETIQUETAS[tx.tipo] ?? ''}</span>
+            <span class="tx-icon tx-icon--${tx.tipo === 'transferencia' && isCredit ? 'entrada' : tx.tipo}">${icono(tx)}</span>
             <div>
               <div class="tx-desc">${esc(tx.descripcion)}</div>
               <div class="tx-date">${fecha(tx.fecha)}${tx.motivo ? ' · ' + esc(tx.motivo) : ''}</div>
@@ -260,6 +275,72 @@ function escucharCambios() {
   const fuente = new EventSource(`/api/eventos?token=${encodeURIComponent(token)}`);
   fuente.addEventListener('cambio', () => cargar());
 }
+
+// ===== TECLADO NUMÉRICO =====
+// Cada panel tiene un teclado que escribe en su campo de monto (también se puede teclear).
+
+document.querySelectorAll('[data-teclado]').forEach((teclado) => {
+  const campo = document.getElementById(teclado.dataset.teclado);
+  const teclas = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'borrar'];
+  teclado.innerHTML = teclas.map((t) => t === 'borrar'
+    ? '<button type="button" data-tecla="borrar" aria-label="Borrar"><svg viewBox="0 0 24 24"><path d="M9 6h11v12H9l-6-6 6-6ZM13 10l4 4M17 10l-4 4" /></svg></button>'
+    : `<button type="button" data-tecla="${t}">${t}</button>`).join('');
+  teclado.addEventListener('click', (e) => {
+    const tecla = e.target.closest('[data-tecla]')?.dataset.tecla;
+    if (!tecla) return;
+    let v = campo.value;
+    if (tecla === 'borrar') v = v.slice(0, -1);
+    else if (tecla === '.' && v.includes('.')) return;
+    else if (/\.\d{2}$/.test(v)) return;          // máximo dos decimales
+    else v = (v === '0' && tecla !== '.') ? tecla : v + tecla;
+    campo.value = v;
+  });
+});
+
+// ===== DESLIZA PARA ENVIAR =====
+// Arrastrar la perilla hasta el final envía; un clic normal también.
+
+(() => {
+  const boton = document.querySelector('.deslizar');
+  const perilla = boton.querySelector('.deslizar-perilla');
+  let inicio = null;
+  let arrastro = false;
+
+  perilla.addEventListener('pointerdown', (e) => {
+    inicio = e.clientX;
+    arrastro = false;
+    perilla.setPointerCapture(e.pointerId);
+    boton.classList.add('arrastrando');
+  });
+  perilla.addEventListener('pointermove', (e) => {
+    if (inicio === null) return;
+    const max = boton.clientWidth - perilla.offsetWidth - 8;
+    const dx = Math.max(0, Math.min(max, e.clientX - inicio));
+    if (dx > 4) arrastro = true;
+    perilla.style.transform = `translateX(${dx}px)`;
+  });
+  perilla.addEventListener('pointerup', (e) => {
+    if (inicio === null) return;
+    const max = boton.clientWidth - perilla.offsetWidth - 8;
+    const llego = e.clientX - inicio > max * 0.8;
+    inicio = null;
+    boton.classList.remove('arrastrando');
+    perilla.style.transform = '';
+    if (llego) handleTransfer();
+  });
+  // Si fue arrastre, ignorar el clic que el navegador dispara al soltar
+  boton.addEventListener('click', (e) => {
+    if (arrastro) { e.stopImmediatePropagation(); e.preventDefault(); arrastro = false; }
+  }, true);
+})();
+
+// ===== BARRA INFERIOR =====
+
+document.querySelectorAll('.tab').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('activo', t === tab));
+  });
+});
 
 // ===== INIT =====
 if (token) {

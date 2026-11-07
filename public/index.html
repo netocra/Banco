@@ -4,22 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Banco BBUA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@300..800&display=swap" />
   <link rel="stylesheet" href="banco/styles.css" />
   <style>
-    .inicio { max-width: 520px; margin: 0 auto; padding: 3rem 1rem; display: flex; flex-direction: column; gap: 1rem; }
-    .inicio h1 { color: var(--accent); font-size: 1.6rem; }
-    .inicio p { color: var(--muted); line-height: 1.5; }
-    .inicio a.card { display: block; text-decoration: none; color: var(--text); transition: border-color .2s; }
-    .inicio a.card:hover { border-color: var(--primary); }
-    .inicio a.card strong { display: block; font-size: 1.1rem; margin-bottom: .3rem; }
-    .inicio code { color: var(--accent); }
+    .inicio-links { display: flex; flex-direction: column; gap: 12px; }
+    .inicio-link {
+      display: flex; align-items: center; gap: 14px; padding: 18px;
+      border-radius: var(--radio-m); background: var(--superficie); box-shadow: var(--sombra);
+      color: var(--texto); text-decoration: none; transition: transform .2s var(--curva);
+    }
+    .inicio-link:hover { transform: translateY(-2px); }
+    .inicio-link strong { display: block; font-size: 1rem; }
+    .inicio-link small { display: block; margin-top: 2px; color: var(--gris); font-size: .82rem; }
+    .inicio-link .chevron { margin-left: auto; }
   </style>
 </head>
 <body>
-  <main class="inicio">
-    <h1>Bienvenido</h1>
-    <a class="card" href="banco/login.html"><strong>Banco BBUA</strong><span class="tx-date">Consulta tu saldo, tus movimientos y protege tu tarjeta.</span></a>
-    <a class="card" href="tienda/"><strong>Amason</strong><span class="tx-date">Tienda en línea.</span></a>
-  </main>
+  <div class="app app--login">
+    <header class="cielo cielo--login">
+      <span class="marca">BBUA</span>
+      <h1>Bienvenido</h1>
+      <p>Elige a dónde quieres ir.</p>
+    </header>
+    <main class="hoja hoja--login">
+      <nav class="inicio-links">
+        <a class="inicio-link" href="banco/login.html">
+          <span class="opcion-icono"><svg viewBox="0 0 24 24"><path d="M3 10 12 4l9 6M5 10v8M19 10v8M9 10v8M15 10v8M3 20h18" /></svg></span>
+          <span><strong>Banco BBUA</strong><small>Consulta tu saldo, tus movimientos y protege tu tarjeta.</small></span>
+          <svg class="chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
+        </a>
+        <a class="inicio-link" href="tienda/">
+          <span class="opcion-icono"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8ZM9 8V6a3 3 0 0 1 6 0v2" /></svg></span>
+          <span><strong>Amason</strong><small>Tienda en línea.</small></span>
+          <svg class="chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg>
+        </a>
+      </nav>
+    </main>
+  </div>
 </body>
 </html>

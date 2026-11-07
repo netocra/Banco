@@ -4,29 +4,37 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Banco BBUA — Iniciar sesión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@300..800&display=swap" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="login-page">
+<body>
 
-  <div class="login-card">
-    <div class="bank-logo">BT</div>
-    <h1>Banco BBUA</h1>
-    <p class="subtitle">Tu banco digital de confianza</p>
+  <div class="app app--login">
+    <header class="cielo cielo--login">
+      <span class="marca">BBUA</span>
+      <h1>Tu dinero,<br />siempre a la vista.</h1>
+      <p>Banca digital con protección antifraude en cada compra.</p>
+    </header>
 
-    <form id="form-login">
-      <div class="field">
-        <label>Usuario</label>
-        <input type="text" id="input-user" placeholder="ej. carlos" autocomplete="off" />
-      </div>
-      <div class="field">
-        <label>Contraseña</label>
-        <input type="password" id="input-pass" placeholder="••••••" />
-      </div>
-      <p id="login-error" class="error-msg hidden">Usuario o contraseña incorrectos.</p>
-      <button type="submit" class="btn-primary">Iniciar sesión</button>
-    </form>
+    <main class="hoja hoja--login">
+      <form id="form-login">
+        <h2 class="seccion-titulo">Iniciar sesión</h2>
+        <div class="field">
+          <label for="input-user">Usuario</label>
+          <input type="text" id="input-user" placeholder="ej. carlos" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="input-pass">Contraseña</label>
+          <input type="password" id="input-pass" placeholder="••••" />
+        </div>
+        <p id="login-error" class="error-msg hidden">Usuario o contraseña incorrectos.</p>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
 
-    <p class="hint">Demo: <strong>carlos</strong> / <strong>1234</strong></p>
+      <p class="hint">Demo: <strong>carlos</strong> / <strong>1234</strong> · <strong>ana</strong> / <strong>4321</strong></p>
+    </main>
   </div>
 
   <script src="login.js"></script>
