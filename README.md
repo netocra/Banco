@@ -19,7 +19,7 @@ npm run pruebas -- rrppg pptpp   # evalúa cadenas propias
 - Tienda: http://localhost:3000/tienda/ (paga con los datos de la tarjeta que ves en el banco al darle al ojo)
 - Definición del AFD en JSON: http://localhost:3000/api/afd
 
-Para la demo: abre el banco como `carlos`, deja visible el monitor antifraude y corre `npm run ataque`. Se ve cómo el autómata avanza de estado con cada cargo, cómo aparece la alerta en q3 y cómo se rechaza el cargo grande y se bloquea la tarjeta en q4. Los datos viven en memoria; para empezar de cero, reinicia el servidor.
+Para la demo: abre el banco como `carlos` y corre `npm run ataque`. La app se ve como un banco normal: el AFD trabaja por detrás, y el cliente sólo ve la alerta "¿fuiste tú?" cuando el autómata llega a q3, y el cargo grande rechazado con la tarjeta bloqueada cuando llega a q4. Para mostrar el autómata en sí, usa `npm run pruebas` o `/api/afd`. Los datos viven en memoria; para empezar de cero, reinicia el servidor.
 
 ## El autómata
 
@@ -57,7 +57,7 @@ Los umbrales están en `server/afd.js`.
 server/afd.js            el AFD: Σ, Q, δ, F y la traducción de cargos a símbolos
 server/pagos.js          pasarela de pagos: alimenta el AFD y decide aprobar, alertar o bloquear
 server/server.js         API y archivos estáticos (sólo módulos nativos de Node)
-public/banco/            app del cliente, con alertas en tiempo real (SSE) y el diagrama del AFD
+public/banco/            app del cliente, con alertas en tiempo real (SSE)
 public/tienda/           tienda con carrito y pago con tarjeta
 scripts/card-tester.js   simulador del ataque (sólo contra el banco local, tarjetas ficticias)
 scripts/probar-afd.js    pruebas del autómata para el reporte

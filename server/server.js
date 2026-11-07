@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { usuarios, eventos, notificar, agregarMovimiento } from './db.js';
 import { procesarPago } from './pagos.js';
-import { definicion, INICIAL, ESTADOS } from './afd.js';
+import { definicion, INICIAL } from './afd.js';
 import { formatear, enmascarar } from './tarjetas.js';
 
 const PUERTO = Number(process.env.PORT) || 3000;
@@ -67,7 +67,6 @@ function resumen(id) {
       cvv: u.tarjeta.cvv,
       bloqueada: u.tarjeta.bloqueada,
     },
-    afd: { estado: u.afd.estado, nombreEstado: ESTADOS[u.afd.estado], cadena: u.afd.cadena, ultimaTransicion: u.afd.ultimaTransicion ?? null },
     movimientos: u.movimientos.slice(-30).reverse(),
     alertas: u.alertas.slice().reverse(),
   };

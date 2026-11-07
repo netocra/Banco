@@ -94,7 +94,6 @@ function refreshDashboard() {
   document.getElementById('lock-label').textContent = u.tarjeta.bloqueada ? 'Desbloquear' : 'Bloquear';
   renderCardData();
   renderAlertas();
-  renderAfd();
   renderTransactions();
 }
 
@@ -117,13 +116,12 @@ function renderTransactions() {
     .map(tx => {
       const isCredit = tx.monto > 0;
       const clase = tx.tipo === 'rechazo' ? 'rejected' : isCredit ? 'credit' : 'debit';
-      const simbolo = tx.simbolo ? `<span class="tx-sym" title="Símbolo leído por el AFD">${esc(tx.simbolo)}</span>` : '';
       return `
         <li class="${tx.tipo === 'rechazo' ? 'tx-rechazo' : ''}">
           <div class="tx-info">
             <span class="tx-icon tx-icon--${tx.tipo}">${ETIQUETAS[tx.tipo] ?? ''}</span>
             <div>
-              <div class="tx-desc">${esc(tx.descripcion)} ${simbolo}</div>
+              <div class="tx-desc">${esc(tx.descripcion)}</div>
               <div class="tx-date">${fecha(tx.fecha)}${tx.motivo ? ' · ' + esc(tx.motivo) : ''}</div>
             </div>
           </div>
@@ -175,26 +173,9 @@ function avisarAlertasNuevas() {
 async function responderAlerta(id, fuiYo) {
   datos = await api(`/api/alertas/${id}/respuesta`, { fuiYo });
   refreshDashboard();
-  showToast(fuiYo ? 'Gracias, reiniciamos el monitor.' : 'Tarjeta bloqueada.');
+  showToast(fuiYo ? 'Gracias por confirmarlo.' : 'Tarjeta bloqueada.');
 }
 
-// ===== AUTÓMATA =====
-
-function renderAfd() {
-  const { estado, nombreEstado, cadena, ultimaTransicion } = datos.afd;
-  const svg = document.getElementById('afd');
-
-  svg.querySelectorAll('.estado').forEach(g => g.classList.toggle('activo', g.dataset.q === estado));
-  svg.querySelectorAll('[data-t]').forEach(el => el.classList.remove('ultima'));
-  if (ultimaTransicion) {
-    svg.querySelectorAll(`[data-t="${ultimaTransicion.de}${ultimaTransicion.a}"]`).forEach(el => el.classList.add('ultima'));
-  }
-
-  const badge = document.getElementById('afd-badge');
-  badge.textContent = `${estado} · ${nombreEstado}`;
-  badge.className = `badge ${estado === 'q4' ? 'badge--fraude' : estado === 'q3' ? 'badge--sospecha' : ''}`;
-  document.getElementById('afd-cadena').textContent = cadena || 'ε';
-}
 
 // ===== TOGGLE VISIBILIDAD =====
 
@@ -209,7 +190,7 @@ async function toggleLock() {
   const bloquear = !datos.tarjeta.bloqueada;
   datos = await api('/api/tarjeta/bloqueo', { bloqueada: bloquear });
   refreshDashboard();
-  showToast(bloquear ? 'Tarjeta bloqueada.' : 'Tarjeta desbloqueada. Monitor reiniciado.');
+  showToast(bloquear ? 'Tarjeta bloqueada.' : 'Tarjeta desbloqueada.');
 }
 
 // ===== LOGOUT =====
