@@ -38,12 +38,12 @@ function cambiar(id, delta) {
 const IMAGENES = {
   sticker:   'https://images.unsplash.com/photo-1572375992501-4b0892d50c69?w=400&q=80',
   llavero:   'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&q=80',
-  taza:      'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400&q=80',
+  taza:      'https://images.unsplash.com/photo-1533776992670-a72f4c28235e?q=80&w=400&auto=format&fit=crop',
   cable:     'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400&q=80',
   mouse:     'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&q=80',
   teclado:   'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=80',
-  audifonos: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
-  laptop:    'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80',
+  audifonos: 'https://images.unsplash.com/photo-1628329567705-f8f7150c3cff?q=80&w=400&auto=format&fit=crop',
+  laptop:    'https://images.unsplash.com/photo-1636211993589-6daf32038bd1?q=80&w=400&auto=format&fit=crop',
 };
 const imagen = (id, ancho) => (IMAGENES[id] ?? 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80').replace('w=400', `w=${ancho}`);
 

@@ -63,18 +63,15 @@ body {
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
   color: var(--texto);
   text-decoration: none;
 }
-.logo-ama { font-weight: 700; font-size: 1.32rem; letter-spacing: -.03em; font-stretch: 100%; }
-.logo-son {
-  height: 34px;
-  width: auto;
-  border-radius: 3px;
-  transition: transform .4s var(--curva);
+.logo-text {
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -.03em;
 }
-.logo:hover .logo-son { transform: rotate(-5deg) scale(1.08); }
+.logo:hover .logo-text { opacity: .8; }
 
 .lateral-grupo { display: flex; flex-direction: column; gap: 14px; }
 
