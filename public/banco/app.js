@@ -334,11 +334,11 @@ document.querySelectorAll('[data-teclado]').forEach((teclado) => {
   }, true);
 })();
 
-// ===== BARRA INFERIOR =====
+// ===== NAVEGACIÓN LATERAL =====
 
-document.querySelectorAll('.tab').forEach((tab) => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('activo', t === tab));
+document.querySelectorAll('a.nav-item').forEach((item) => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('a.nav-item').forEach((i) => i.classList.toggle('activo', i === item));
   });
 });
 
