@@ -6,88 +6,58 @@
   <title>Amason — Tienda en línea</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Playfair+Display:ital,wght@0,400..700;1,400..600&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,200..700&display=swap" />
   <link rel="stylesheet" href="tienda.css" />
 </head>
 <body>
 
-  <div class="marco">
+  <div class="app">
 
-    <!-- ===== BARRA SUPERIOR ===== -->
-    <header class="topbar">
-      <div class="topbar-izq">
-        <a class="pill pill--nuevo" href="#coleccion"><span class="punto"></span>Nuevo</a>
-      </div>
-
+    <!-- ===== BARRA LATERAL ===== -->
+    <aside class="lateral">
       <a class="logo" href="./" aria-label="Amason">
         <span class="logo-ama">Ama</span><img class="logo-son" src="son.png" alt="son" />
       </a>
 
-      <div class="topbar-der">
-        <label class="pill pill--buscar">
+      <nav class="lateral-grupo">
+        <label class="lateral-buscar">
+          <span>Buscar</span>
           <input id="buscar" type="search" placeholder="Buscar" aria-label="Buscar productos" autocomplete="off" />
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
         </label>
-        <button class="pill cart-btn" onclick="abrirCarrito()">
+        <button class="lateral-link cart-btn" onclick="abrirCarrito()">
           Carrito <span id="cart-count" class="cart-count">0</span>
         </button>
-      </div>
-    </header>
+      </nav>
 
-    <!-- ===== VITRINA (BENTO) ===== -->
-    <section class="vitrina" aria-label="Destacados">
+      <nav class="lateral-grupo">
+        <a class="lateral-link activo" href="./">Tienda</a>
+        <a class="lateral-link" href="/banco/login.html">Banco BBUA</a>
+      </nav>
 
-      <article class="tile hero" style="--i: 0">
-        <div class="hero-foto" id="hero-foto"></div>
-        <div class="hero-texto">
-          <h1>Audífonos<br />Bluetooth</h1>
-          <p>Sonido envolvente, cancelación de ruido y hasta 30 horas de batería.</p>
-          <div class="hero-acciones">
-            <button class="boton boton--solido" onclick="comprarAhora('audifonos')">Comprar ahora</button>
-            <a class="boton boton--vidrio" href="#coleccion">Explorar</a>
-          </div>
-        </div>
-        <a class="hero-scroll" href="#coleccion">Desliza <span aria-hidden="true">→</span></a>
-      </article>
+      <p class="lateral-pie">© 2026 Amason<br />Pagos protegidos por Banco BBUA</p>
+    </aside>
 
-      <div class="columna-destacados" id="destacados"></div>
-
-      <article class="tile sello" style="--i: 4">
-        <h2>Audífonos<br />Bluetooth</h2>
-      </article>
-
-      <article class="tile confianza" style="--i: 5">
-        <p>Elegido por más de 12,000 clientes · Calificación 4.9/5</p>
-      </article>
-
-      <article class="tile carino" style="--i: 6">
-        <h3>Hecho con cariño</h3>
-        <p>Cada producto se elige con atención al detalle, materiales de calidad y un diseño que dura. Piezas útiles y bonitas para tu día a día, con pagos protegidos por Banco BBUA.</p>
-        <a class="enlace" href="#coleccion">Descubre más</a>
-      </article>
-    </section>
-
-    <!-- ===== COLECCIÓN ===== -->
-    <section class="coleccion" id="coleccion">
-      <header class="coleccion-head">
-        <h2>La colección</h2>
-        <span id="coleccion-cuenta" class="coleccion-cuenta"></span>
+    <!-- ===== CONTENIDO ===== -->
+    <div class="contenido">
+      <header class="categorias" role="tablist" aria-label="Categorías">
+        <div class="pestanas" id="pestanas"></div>
+        <button class="orden" id="orden" onclick="cambiarOrden()">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5h12M6 10h8M8 15h4" /></svg>
+          <span id="orden-texto">Destacados</span>
+          <span id="coleccion-cuenta" class="orden-cuenta">0</span>
+        </button>
       </header>
-      <main id="catalogo" class="catalogo"></main>
-      <p id="sin-resultados" class="sin-resultados hidden">No encontramos productos con ese nombre.</p>
-    </section>
 
-    <footer class="pie">
-      <span class="pie-marca">Amason</span>
-      <span>Envío gratis en compras mayores a $999 · Pagos procesados por Banco BBUA</span>
-    </footer>
+      <main id="catalogo" class="mosaico" aria-live="polite"></main>
+      <p id="sin-resultados" class="sin-resultados hidden">Sin piezas que coincidan.</p>
+    </div>
   </div>
 
   <!-- ===== CARRITO ===== -->
   <div id="carrito" class="drawer-overlay hidden" onclick="if (event.target === this) cerrarCarrito()">
     <aside class="drawer">
       <div class="drawer-head">
-        <h2>Tu carrito</h2>
+        <h2>Carrito</h2>
         <button class="icon-btn" onclick="cerrarCarrito()" aria-label="Cerrar">✕</button>
       </div>
       <ul id="cart-items" class="cart-items"></ul>
