@@ -502,3 +502,179 @@ body.login-page {
 @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(12px); }
                      to   { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* ===== DATOS EXTRA DE LA TARJETA ===== */
+.dc-extra {
+  margin-top: -.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: .78rem;
+  letter-spacing: .12em;
+  color: rgba(255,255,255,.55);
+  white-space: pre;
+}
+
+/* ===== TARJETA BLOQUEADA ===== */
+.dc-locked {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,15,26,.72);
+  backdrop-filter: blur(2px);
+  color: #fca5a5;
+  font-weight: 800;
+  letter-spacing: .12em;
+  font-size: 1.05rem;
+}
+.debit-card.bloqueada { border-color: var(--danger); }
+.debit-card.bloqueada .dc-locked { display: flex; }
+
+/* ===== BOTÓN PELIGRO ===== */
+.btn-danger {
+  flex: 1;
+  padding: .65rem;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn-danger:hover { background: #dc2626; }
+
+/* ===== ALERTAS ===== */
+.alertas { display: flex; flex-direction: column; gap: .8rem; }
+.alertas:empty { display: none; }
+
+.alerta {
+  border-radius: var(--radius);
+  padding: 1.1rem 1.2rem;
+  border: 1.5px solid;
+  box-shadow: var(--shadow);
+  animation: slideIn .3s ease;
+}
+.alerta p { font-size: .9rem; margin: .6rem 0 .2rem; line-height: 1.45; }
+.alerta .modal-actions { margin-top: .9rem; }
+.alerta-head { display: flex; gap: .7rem; align-items: center; }
+.alerta-icon { font-size: 1.5rem; }
+
+.alerta--sospecha { background: #2a2210; border-color: #f59e0b; color: #fde68a; }
+.alerta--fraude   { background: #2a1214; border-color: var(--danger); color: #fecaca; }
+
+/* ===== MONITOR ANTIFRAUDE (AFD) ===== */
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .8rem;
+}
+.section-head .section-title { margin-bottom: 0; }
+
+.badge {
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .25rem .65rem;
+  border-radius: 50px;
+  background: rgba(34,197,94,.15);
+  color: var(--success);
+  border: 1px solid rgba(34,197,94,.4);
+  white-space: nowrap;
+}
+.badge--sospecha { background: rgba(245,158,11,.15); color: #fbbf24; border-color: rgba(245,158,11,.5); }
+.badge--fraude   { background: rgba(239,68,68,.15);  color: #f87171; border-color: rgba(239,68,68,.5); }
+
+.afd { width: 100%; height: auto; display: block; color: var(--muted); }
+
+.afd .arista { fill: none; stroke: currentColor; stroke-width: 1.5; opacity: .55; transition: all .3s; }
+.afd .arista.ultima { stroke: var(--accent); color: var(--accent); stroke-width: 2.5; opacity: 1; }
+.afd .etq { fill: var(--muted); font-size: 12px; text-anchor: middle; font-family: 'Courier New', monospace; }
+
+.afd .estado circle { fill: var(--bg); stroke: var(--muted); stroke-width: 1.8; transition: all .3s; }
+.afd .estado text { fill: var(--text); font-size: 15px; font-weight: 700; text-anchor: middle; font-family: 'Courier New', monospace; }
+.afd .estado .interno { fill: none; }
+
+.afd .estado.activo circle:first-child { fill: rgba(14,165,233,.25); stroke: var(--primary); stroke-width: 2.5; filter: drop-shadow(0 0 6px rgba(14,165,233,.7)); }
+.afd .estado.activo .interno { stroke: var(--primary); }
+.afd .estado.final.activo circle:first-child { fill: rgba(239,68,68,.25); stroke: var(--danger); filter: drop-shadow(0 0 8px rgba(239,68,68,.8)); }
+.afd .estado.final.activo .interno { stroke: var(--danger); }
+
+.cadena {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin-top: .6rem;
+  padding: .6rem .8rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.cadena .dc-label { color: var(--muted); white-space: nowrap; }
+.cadena code {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  letter-spacing: .25em;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.leyenda { margin-top: .6rem; font-size: .75rem; color: var(--muted); line-height: 1.5; }
+.leyenda b { color: var(--accent); font-family: 'Courier New', monospace; }
+
+/* ===== MOVIMIENTOS: rechazos y símbolos ===== */
+.tx-amount.rejected { color: var(--muted); text-decoration: line-through; }
+.transaction-list li.tx-rechazo { border-color: rgba(239,68,68,.35); }
+.tx-sym {
+  display: inline-block;
+  margin-left: .3rem;
+  padding: 0 .4rem;
+  border-radius: 4px;
+  background: rgba(14,165,233,.15);
+  color: var(--accent);
+  font-family: 'Courier New', monospace;
+  font-size: .75rem;
+  font-weight: 700;
+}
+.tx-info { min-width: 0; }
+.tx-desc { overflow-wrap: anywhere; }
+
+/* ===== RESPONSIVE ===== */
+.dashboard { max-width: 560px; }
+
+@media (max-width: 480px) {
+  .actions { flex-wrap: wrap; }
+  .action-btn { flex: 1 1 40%; }
+  .dc-bottom { flex-wrap: wrap; }
+  .toast { white-space: normal; width: calc(100% - 2rem); text-align: center; }
+}
+
+@keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== ÍCONOS SIN EMOJIS ===== */
+.action-svg { width: 24px; height: 24px; }
+
+.bank-logo {
+  width: 56px; height: 56px; margin: 0 auto .8rem;
+  display: grid; place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary), #0c2a4a);
+  color: #fff; font-size: 1.2rem; font-weight: 800; letter-spacing: .04em;
+}
+
+.tx-icon {
+  width: 38px; flex-shrink: 0;
+  padding: .25rem 0;
+  border-radius: 6px;
+  text-align: center;
+  font-size: .62rem !important;
+  font-weight: 800;
+  letter-spacing: .05em;
+  background: rgba(148,163,184,.12);
+  color: var(--muted);
+}
+.tx-icon--deposito      { background: rgba(34,197,94,.15);  color: var(--success); }
+.tx-icon--compra        { background: rgba(14,165,233,.15); color: var(--accent); }
+.tx-icon--rechazo       { background: rgba(239,68,68,.15);  color: #f87171; }

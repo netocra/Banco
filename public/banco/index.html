@@ -10,7 +10,7 @@
 
   <!-- Navbar -->
   <nav class="navbar">
-    <span class="nav-brand">🏦 Banco Techo</span>
+    <span class="nav-brand">Banco Techo</span>
     <div class="nav-right">
       <span id="nav-user"></span>
       <button id="btn-logout" class="btn-ghost">Cerrar sesión</button>
@@ -19,16 +19,20 @@
 
   <main class="dashboard">
 
+    <!-- Alertas de fraude pendientes -->
+    <section id="alertas" class="alertas"></section>
+
     <!-- Tarjeta de débito -->
-    <section class="debit-card">
+    <section id="debit-card" class="debit-card">
       <!-- Fila superior -->
       <div class="dc-top">
-        <span class="dc-bank-name">🏦 Banco Techo</span>
+        <span class="dc-bank-name">Banco Techo</span>
         <span class="dc-chip">▣</span>
       </div>
 
       <!-- Número de tarjeta -->
       <p id="display-account" class="dc-number"></p>
+      <p id="display-extra" class="dc-extra"></p>
 
       <!-- Fila inferior -->
       <div class="dc-bottom">
@@ -42,7 +46,7 @@
         </div>
         <div class="dc-logo-wrap">
           <div class="dc-logo">VISA</div>
-          <button id="btn-toggle-visibility" class="dc-eye-btn" onclick="toggleVisibility()" title="Mostrar / ocultar saldo">
+          <button id="btn-toggle-visibility" class="dc-eye-btn" onclick="toggleVisibility()" title="Mostrar / ocultar datos de la tarjeta">
             <svg id="icon-eye-open" class="dc-eye" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <ellipse cx="12" cy="12" rx="10" ry="6" stroke="currentColor" stroke-width="1.5"/>
               <circle cx="12" cy="12" r="2.8" fill="currentColor" opacity=".6"/>
@@ -52,22 +56,88 @@
           </button>
         </div>
       </div>
+
+      <div class="dc-locked">TARJETA BLOQUEADA</div>
     </section>
 
     <!-- Acciones rápidas -->
     <section class="actions">
       <button class="action-btn" onclick="openModal('modal-deposit')">
-        <span class="action-icon">⬇️</span>
+        <svg class="action-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v14M6 12l6 6 6-6"/></svg>
         Depositar
       </button>
       <button class="action-btn" onclick="openModal('modal-withdraw')">
-        <span class="action-icon">⬆️</span>
+        <svg class="action-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V6M6 12l6-6 6 6"/></svg>
         Retirar
       </button>
       <button class="action-btn" onclick="openModal('modal-transfer')">
-        <span class="action-icon">↔️</span>
+        <svg class="action-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h15l-4-4M20 15H5l4 4"/></svg>
         Transferir
       </button>
+      <button id="btn-lock" class="action-btn" onclick="toggleLock()">
+        <svg class="action-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        <span id="lock-label">Bloquear</span>
+      </button>
+    </section>
+
+    <!-- Monitor antifraude: el AFD de la tarjeta -->
+    <section class="card">
+      <div class="section-head">
+        <h3 class="section-title">Monitor antifraude</h3>
+        <span id="afd-badge" class="badge">q0 · Normal</span>
+      </div>
+
+      <svg id="afd" class="afd" viewBox="0 0 560 196" role="img" aria-label="Autómata finito determinista del detector de card testing">
+        <defs>
+          <marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+          </marker>
+        </defs>
+
+        <!-- inicio -->
+        <line class="arista" x1="4" y1="92" x2="32" y2="92" marker-end="url(#flecha)" />
+
+        <!-- transiciones hacia adelante -->
+        <line class="arista" data-t="q0q1" x1="86" y1="92" x2="142" y2="92" marker-end="url(#flecha)" />
+        <text class="etq" x="115" y="84">p,r</text>
+        <line class="arista" data-t="q1q2" x1="196" y1="92" x2="252" y2="92" marker-end="url(#flecha)" />
+        <text class="etq" x="225" y="84">p,r</text>
+        <line class="arista" data-t="q2q3" x1="306" y1="92" x2="362" y2="92" marker-end="url(#flecha)" />
+        <text class="etq" x="335" y="84">p,r</text>
+        <line class="arista" data-t="q3q4" x1="416" y1="92" x2="472" y2="92" marker-end="url(#flecha)" />
+        <text class="etq" x="445" y="84">g</text>
+
+        <!-- lazos -->
+        <path class="arista" data-t="q0q0" d="M48,68 C30,22 90,22 72,68" marker-end="url(#flecha)" />
+        <text class="etq" x="60" y="26">n,g,t</text>
+        <path class="arista" data-t="q3q3" d="M378,68 C360,22 420,22 402,68" marker-end="url(#flecha)" />
+        <text class="etq" x="390" y="26">p,r,n</text>
+        <path class="arista" data-t="q4q4" d="M488,68 C470,22 530,22 512,68" marker-end="url(#flecha)" />
+        <text class="etq" x="500" y="26">Σ</text>
+
+        <!-- regresos a q0 -->
+        <path class="arista" data-t="q1q0" d="M170,118 Q115,150 64,118" marker-end="url(#flecha)" />
+        <text class="etq" x="116" y="148">n,g,t</text>
+        <path class="arista" data-t="q2q0" d="M280,118 Q170,185 58,118" marker-end="url(#flecha)" />
+        <text class="etq" x="170" y="166">n,g,t</text>
+        <path class="arista" data-t="q3q0" d="M390,118 Q225,225 52,118" marker-end="url(#flecha)" />
+        <text class="etq" x="223" y="186">t</text>
+
+        <!-- estados -->
+        <g class="estado" data-q="q0"><circle cx="60"  cy="92" r="26" /><text x="60"  y="97">q0</text></g>
+        <g class="estado" data-q="q1"><circle cx="170" cy="92" r="26" /><text x="170" y="97">q1</text></g>
+        <g class="estado" data-q="q2"><circle cx="280" cy="92" r="26" /><text x="280" y="97">q2</text></g>
+        <g class="estado final" data-q="q3"><circle cx="390" cy="92" r="26" /><circle class="interno" cx="390" cy="92" r="21" /><text x="390" y="97">q3</text></g>
+        <g class="estado final" data-q="q4"><circle cx="500" cy="92" r="26" /><circle class="interno" cx="500" cy="92" r="21" /><text x="500" y="97">q4</text></g>
+      </svg>
+
+      <div class="cadena">
+        <span class="dc-label">Cadena leída</span>
+        <code id="afd-cadena">ε</code>
+      </div>
+      <p class="leyenda">
+        <b>p</b> cargo ≤ $50 · <b>r</b> datos incorrectos · <b>n</b> cargo normal · <b>g</b> cargo ≥ $1,000 · <b>t</b> pausa &gt; 10 min
+      </p>
     </section>
 
     <!-- Historial de movimientos -->
