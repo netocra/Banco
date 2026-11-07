@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { usuarios, eventos, notificar, agregarMovimiento } from './db.js';
 import { procesarPago } from './pagos.js';
 import { PRODUCTOS, comprar } from './tienda.js';
-import { definicion, INICIAL } from './afd.js';
+import { definicion, INICIAL, FRAUDE } from './afd.js';
 import { formatear, enmascarar } from './tarjetas.js';
 
 const PUERTO = Number(process.env.PORT) || 3000;
@@ -193,7 +193,7 @@ async function api(req, res, url) {
     const { fuiYo } = await leerCuerpo(req);
     if (fuiYo) {
       alerta.estado = 'descartada';
-      if (u.afd.estado !== 'q4') u.afd = { estado: INICIAL, cadena: '', ultimoIntento: null };
+      if (u.afd.estado !== FRAUDE) u.afd = { estado: INICIAL, cadena: '', ultimoIntento: null };
     } else {
       alerta.estado = 'confirmada';
       u.tarjeta.bloqueada = true;

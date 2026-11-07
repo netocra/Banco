@@ -2,7 +2,7 @@
 // Todo cargo de un comercio pasa por aquí. Cada intento se traduce a símbolos de Σ
 // y se alimenta al AFD de la tarjeta antes de decidir si se aprueba.
 import { randomBytes } from 'node:crypto';
-import { simbolosDelIntento, transicion, esAceptacion, UMBRALES } from './afd.js';
+import { simbolosDelIntento, transicion, esAceptacion, UMBRALES, FRAUDE } from './afd.js';
 import { buscarPorTarjeta, agregarMovimiento, agregarAlerta, notificar } from './db.js';
 import { limpiar, luhnValido } from './tarjetas.js';
 
@@ -30,8 +30,10 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
 
   const datosValidos = String(exp ?? '').trim() === tarjeta.exp && String(cvv ?? '').trim() === tarjeta.cvv;
   const ahora = Date.now();
+  const fondosSuficientes = monto <= usuario.saldo;
   const simbolos = simbolosDelIntento({
     monto,
+    rechazado: !datosValidos || !fondosSuficientes,
     msDesdeAnterior: afd.ultimoIntento ? ahora - afd.ultimoIntento : null,
     promedioCliente: compraPromedio(usuario),
   });
@@ -50,9 +52,9 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
 
   // Decisión del banco
   let motivo = null;
-  if (!datosValidos) motivo = 'Datos de la tarjeta incorrectos';
-  else if (estado === 'q4') motivo = 'Cargo bloqueado por sospecha de fraude';
-  else if (monto > usuario.saldo) motivo = 'Fondos insuficientes';
+  if (estado === FRAUDE) motivo = 'Cargo bloqueado por sospecha de fraude';
+  else if (!datosValidos) motivo = 'Datos de la tarjeta incorrectos';
+  else if (!fondosSuficientes) motivo = 'Fondos insuficientes';
 
   const simbolo = simbolos.at(-1);
   if (motivo) {
@@ -64,7 +66,13 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
 
   // Al ENTRAR a un estado de aceptación se dispara la alerta
   if (estado !== estadoAnterior && esAceptacion(estado)) {
-    if (estado === 'q3') {
+    if (estado === 'q4') {
+      agregarAlerta(usuario, {
+        nivel: 'sospecha',
+        titulo: 'Intentaron cobrar con tu tarjeta varias veces',
+        mensaje: `Rechazamos varios cargos seguidos con tu tarjeta. El último fue en ${comercio} por $${monto.toLocaleString('es-MX')} (${motivo.toLowerCase()}). ¿Fuiste tú?`,
+      });
+    } else if (estado === 'q5') {
       agregarAlerta(usuario, {
         nivel: 'sospecha',
         titulo: 'Tu tarjeta podría estar siendo probada',
@@ -75,7 +83,7 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
       agregarAlerta(usuario, {
         nivel: 'fraude',
         titulo: 'Bloqueamos tu tarjeta',
-        mensaje: `Después de varios intentos seguidos se intentó un cargo fuera de lo habitual de $${monto.toLocaleString('es-MX')} en ${comercio}. Lo rechazamos y bloqueamos tu tarjeta.`,
+        mensaje: `Después de varios intentos sospechosos se intentó un cargo fuera de lo habitual de $${monto.toLocaleString('es-MX')} en ${comercio}. Lo rechazamos y bloqueamos tu tarjeta.`,
       });
     }
   }

@@ -2,7 +2,7 @@
 
 Proyecto de Teoría de la Computación — Ernesto Gabriel Flores de la Rosa y Alan Seth Manjarrez Gomez Llanos.
 
-Un **Autómata Finito Determinista** lee la secuencia de cargos de cada tarjeta y reconoce el patrón de *card testing*: una ráfaga de intentos de cargo en poco tiempo (velocidad), y después un cargo fuera del perfil del cliente. Como en los sistemas antifraude de los bancos, ningún cargo se juzga aislado: lo que importa es la secuencia. Cuando llega a un estado de aceptación, el banco alerta al cliente o bloquea la tarjeta.
+Un **Autómata Finito Determinista** lee la secuencia de cargos de cada tarjeta y reconoce dos formas de probar una tarjeta robada: una **ráfaga** de intentos en poco tiempo (velocidad), o un **sondeo de saldo** (varios intentos rechazados, por ejemplo montos grandes que van bajando), seguidos de un cargo fuera del perfil del cliente. Como en los sistemas antifraude de los bancos, ningún cargo se juzga aislado: lo que importa es la secuencia. Cuando llega a un estado de aceptación, el banco alerta al cliente o bloquea la tarjeta.
 
 ## Cómo correrlo
 
@@ -11,6 +11,7 @@ Requiere Node 20 o más reciente. No hay dependencias que instalar.
 ```bash
 npm start            # levanta el banco y la tienda en http://localhost:3000
 npm run ataque       # en otra terminal: alguien con los datos de la tarjeta de Carlos la prueba en TechoStore
+npm run ataque -- --modo saldo   # mismo caso, pero con compras grandes que van bajando hasta que una pase
 npm run pruebas      # corre cadenas de prueba por el AFD e imprime la traza
 npm run pruebas -- cccg cctcc   # evalúa cadenas propias
 ```
@@ -19,7 +20,7 @@ npm run pruebas -- cccg cctcc   # evalúa cadenas propias
 - Tienda: http://localhost:3000/tienda/ (paga con los datos de la tarjeta que ves en el banco al darle al ojo)
 - Definición del AFD en JSON: http://localhost:3000/api/afd
 
-Para la demo: abre el banco como `carlos` y corre `npm run ataque`. El script simula a alguien que ya tiene el número, vencimiento y CVV de la tarjeta y automatiza compras baratas en TechoStore para comprobar que funciona, y luego una compra cara. Con `--tarjeta`, `--exp` y `--cvv` se puede apuntar a otra tarjeta (por ejemplo la de Ana: `npm run ataque -- --tarjeta 4521991033451230 --exp 03/28 --cvv 952`). La app se ve como un banco normal: el AFD trabaja por detrás, y el cliente sólo ve la alerta "¿fuiste tú?" cuando el autómata llega a q3 (tercer intento seguido), y el cargo grande rechazado con la tarjeta bloqueada cuando llega a q4. Para mostrar el autómata en sí, usa `npm run pruebas` o `/api/afd`. Los datos viven en memoria; para empezar de cero, reinicia el servidor.
+Para la demo: abre el banco como `carlos` y corre `npm run ataque`. El script simula a alguien que ya tiene el número, vencimiento y CVV de la tarjeta y automatiza compras baratas en TechoStore para comprobar que funciona, y luego una compra cara. Con `--tarjeta`, `--exp` y `--cvv` se puede apuntar a otra tarjeta (por ejemplo la de Ana: `npm run ataque -- --tarjeta 4521991033451230 --exp 03/28 --cvv 952`). La app se ve como un banco normal: el AFD trabaja por detrás, y el cliente sólo ve la alerta "¿fuiste tú?" cuando el autómata llega a q4 o q5, y el cargo grande rechazado con la tarjeta bloqueada cuando llega a q6. Para mostrar el autómata en sí, usa `npm run pruebas` o `/api/afd`. Los datos viven en memoria; para empezar de cero, reinicia el servidor.
 
 ## El autómata
 
@@ -34,25 +35,47 @@ Antes de entrar al AFD, cada intento de cargo se traduce a un símbolo usando su
 
 | Símbolo | Significado |
 |---|---|
-| `c` | Intento de cargo dentro del perfil del cliente (aprobado o con datos incorrectos) |
+| `c` | Cargo dentro del perfil del cliente |
 | `g` | Cargo grande: fuera del perfil del cliente |
+| `r` | Intento rechazado: fondos insuficientes o datos incorrectos |
 | `t` | Pausa: más de 5 min desde el intento anterior (se emite antes del símbolo del cargo) |
 
-**Q** = {q0 Sin actividad reciente, q1 1 intento, q2 2 intentos seguidos, q3 Ráfaga de intentos, q4 Fraude}
+**Q**
 
-**F** = {q3, q4}. Al entrar a q3 (tres intentos seguidos) se alerta al cliente ("¿fuiste tú?"). Si el siguiente paso llevaría a q4 (cargo grande después de la ráfaga), el banco rechaza ese cargo y bloquea la tarjeta. Si el cliente responde "fui yo", el AFD vuelve a q0.
+| Estado | Significado |
+|---|---|
+| q0 | Sin actividad reciente |
+| q1 | 1 intento |
+| q2 | 2 intentos seguidos |
+| q3 | Intento rechazado |
+| q4 | Rechazos repetidos: posible sondeo de saldo |
+| q5 | Ráfaga de intentos: tarjeta posiblemente probada |
+| q6 | Fraude: cargo grande tras rechazos o ráfaga |
+
+**F** = {q4, q5, q6}. Al entrar a q4 o q5 se alerta al cliente ("¿fuiste tú?") y el cargo sigue su curso normal. Si el siguiente paso llevaría a q6, el banco rechaza ese cargo y bloquea la tarjeta. Si el cliente responde "fui yo", el AFD vuelve a q0.
 
 **δ**
 
-|      | c  | g  | t  |
-|------|----|----|----|
-| →q0  | q1 | q1 | q0 |
-| q1   | q2 | q2 | q0 |
-| q2   | q3 | q3 | q0 |
-| *q3  | q3 | q4 | q0 |
-| *q4  | q4 | q4 | q4 |
+|      | c  | g  | r  | t  |
+|------|----|----|----|----|
+| →q0  | q1 | q1 | q3 | q0 |
+| q1   | q2 | q2 | q3 | q0 |
+| q2   | q5 | q5 | q5 | q0 |
+| q3   | q2 | q5 | q4 | q0 |
+| *q4  | q4 | q6 | q4 | q0 |
+| *q5  | q5 | q6 | q5 | q0 |
+| *q6  | q6 | q6 | q6 | q6 |
 
-Ejemplos: `c` (una compra) y `ctctc` (compras espaciadas) no se aceptan; `ccc` (tres mouses en dos minutos) se acepta en q3; `ccccg` (el ataque del script) termina en q4.
+Ejemplos:
+
+| Cadena | Caso | Resultado |
+|---|---|---|
+| `c`, `ctctc`, `g` | Compras normales o una compra grande aislada | No se acepta |
+| `rc` | Error al teclear el CVV y luego la compra correcta | No se acepta |
+| `ccc` | Tres mouses en dos minutos | q5: alerta |
+| `ccccg` | Ráfaga de compras baratas y una grande (`npm run ataque`) | q6: bloqueo |
+| `rrg` | Laptop y 4 teclados rechazados por saldo, luego 2 teclados (`--modo saldo`) | q6: bloqueo |
+| `rrrc` | Varios rechazos y luego un cargo dentro del perfil | q4: alerta |
 
 Los umbrales están en `server/afd.js`.
 

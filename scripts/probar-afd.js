@@ -6,11 +6,13 @@ import { evaluar, ALFABETO, ESTADOS, esAceptacion } from '../server/afd.js';
 const CASOS = [
   ['c',       'Una sola compra'],
   ['ctctc',   'Compras normales separadas por más de 5 min'],
-  ['gtc',     'Una compra grande y después otra normal, con pausa'],
+  ['g',       'Una compra grande aislada'],
+  ['rc',      'Un error al teclear el CVV y luego la compra correcta'],
   ['ccc',     'Tres intentos seguidos (p. ej. 3 mouses en 2 min) → alerta'],
   ['cctcc',   'Dos intentos, pausa, dos intentos: la pausa reinicia la cuenta'],
-  ['ccccg',   'Ataque completo: ráfaga de compras y luego una grande → bloqueo'],
-  ['cccg',    'Ráfaga mínima y compra grande → bloqueo'],
+  ['ccccg',   'Ráfaga de compras baratas y luego una grande → bloqueo'],
+  ['rrg',     'Sondeo de saldo: montos grandes rechazados y luego uno que sí alcanza → bloqueo'],
+  ['rrrc',    'Sondeo de saldo que termina en un cargo dentro del perfil → alerta'],
 ];
 
 const color = (c, s) => `\x1b[${c}m${s}\x1b[0m`;
