@@ -2,33 +2,34 @@
 //
 // M = (Q, Σ, δ, q0, F)
 //
-// Cada intento de cargo sobre una tarjeta se traduce a un símbolo del alfabeto Σ.
-// La secuencia de intentos de una tarjeta forma una cadena; el AFD la lee símbolo
-// por símbolo y, al llegar a un estado de aceptación, el banco dispara una alerta.
+// Igual que en los sistemas antifraude de los bancos, el detector no juzga un cargo
+// aislado sino la secuencia: cuántos intentos llegan seguidos en poco tiempo
+// (velocidad) y si después aparece un cargo fuera del perfil del cliente.
+//
+// Cada intento se traduce a un símbolo de Σ con base en su contexto (tiempo desde el
+// intento anterior y compra promedio del cliente). El AFD lee esos símbolos y, al
+// llegar a un estado de aceptación, el banco dispara una alerta o bloquea la tarjeta.
 
-// Umbrales usados para clasificar cada cargo
 export const UMBRALES = {
-  pequeno: 50,              // cargo ≤ $50 → cargo de prueba
-  grande: 1000,             // cargo ≥ $1,000 → cargo grande
-  ventanaMin: 10,           // más de 10 min sin cargos → pausa (reinicia el patrón)
+  ventanaMin: 5,        // dos intentos con menos de 5 min entre sí se consideran seguidos
+  grandeMinimo: 1000,   // un cargo grande es de al menos $1,000...
+  factorPerfil: 3,      // ...o del triple de la compra promedio del cliente, lo que sea mayor
 };
 
 // Σ — alfabeto de entrada
 export const ALFABETO = {
-  p: 'Cargo pequeño (≤ $50) con datos correctos',
-  r: 'Intento rechazado por datos incorrectos (CVV o vencimiento)',
-  n: 'Cargo normal (entre $50 y $1,000)',
-  g: 'Cargo grande (≥ $1,000)',
-  t: 'Pausa: pasaron más de 10 min desde el intento anterior',
+  c: 'Intento de cargo dentro del perfil del cliente (aprobado o con datos incorrectos)',
+  g: 'Cargo grande: fuera del perfil del cliente',
+  t: 'Pausa: pasaron más de 5 min desde el intento anterior',
 };
 
 // Q — estados
 export const ESTADOS = {
-  q0: 'Normal',
-  q1: '1 cargo de prueba',
-  q2: '2 cargos de prueba',
-  q3: 'Tarjeta siendo probada',
-  q4: 'Fraude: cargo grande tras pruebas',
+  q0: 'Sin actividad reciente',
+  q1: '1 intento',
+  q2: '2 intentos seguidos',
+  q3: 'Ráfaga de intentos: tarjeta posiblemente probada',
+  q4: 'Fraude: cargo grande tras la ráfaga',
 };
 
 export const INICIAL = 'q0';
@@ -38,11 +39,11 @@ export const ACEPTACION = ['q3', 'q4'];
 
 // δ — función de transición
 export const DELTA = {
-  q0: { p: 'q1', r: 'q1', n: 'q0', g: 'q0', t: 'q0' },
-  q1: { p: 'q2', r: 'q2', n: 'q0', g: 'q0', t: 'q0' },
-  q2: { p: 'q3', r: 'q3', n: 'q0', g: 'q0', t: 'q0' },
-  q3: { p: 'q3', r: 'q3', n: 'q3', g: 'q4', t: 'q0' },
-  q4: { p: 'q4', r: 'q4', n: 'q4', g: 'q4', t: 'q4' }, // absorbente: tarjeta bloqueada
+  q0: { c: 'q1', g: 'q1', t: 'q0' },
+  q1: { c: 'q2', g: 'q2', t: 'q0' },
+  q2: { c: 'q3', g: 'q3', t: 'q0' },
+  q3: { c: 'q3', g: 'q4', t: 'q0' },
+  q4: { c: 'q4', g: 'q4', t: 'q4' }, // absorbente: tarjeta bloqueada
 };
 
 export function transicion(estado, simbolo) {
@@ -55,17 +56,18 @@ export function esAceptacion(estado) {
   return ACEPTACION.includes(estado);
 }
 
+export function umbralGrande(promedioCliente) {
+  return Math.max(UMBRALES.grandeMinimo, UMBRALES.factorPerfil * (promedioCliente || 0));
+}
+
 // Traduce un intento de cargo a símbolo(s) de Σ.
 // Si pasó más de la ventana desde el intento anterior, antes se emite 't'.
-export function simbolosDelIntento({ monto, datosValidos, msDesdeAnterior }) {
+export function simbolosDelIntento({ monto, msDesdeAnterior, promedioCliente }) {
   const simbolos = [];
   if (msDesdeAnterior != null && msDesdeAnterior > UMBRALES.ventanaMin * 60_000) {
     simbolos.push('t');
   }
-  if (!datosValidos) simbolos.push('r');
-  else if (monto <= UMBRALES.pequeno) simbolos.push('p');
-  else if (monto >= UMBRALES.grande) simbolos.push('g');
-  else simbolos.push('n');
+  simbolos.push(monto >= umbralGrande(promedioCliente) ? 'g' : 'c');
   return simbolos;
 }
 

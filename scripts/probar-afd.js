@@ -1,15 +1,16 @@
 // Corre cadenas de prueba por el AFD e imprime la traza de estados.
 // Uso:  npm run pruebas            (casos predefinidos)
-//       npm run pruebas -- pprpg   (una cadena propia)
+//       npm run pruebas -- cccg   (una cadena propia)
 import { evaluar, ALFABETO, ESTADOS, esAceptacion } from '../server/afd.js';
 
 const CASOS = [
-  ['nnngn',   'Cliente normal: compras medianas y una grande'],
-  ['pnpnp',   'Cargos pequeños intercalados con normales (no es patrón)'],
-  ['pptpp',   'Cargos pequeños separados por una pausa larga'],
-  ['ppp',     'Tres cargos de prueba seguidos → alerta'],
-  ['rrppg',   'Ataque completo: rechazos, pruebas y cargo grande → bloqueo'],
-  ['pprpng',  'Pruebas, un cargo normal para disimular y luego grande'],
+  ['c',       'Una sola compra'],
+  ['ctctc',   'Compras normales separadas por más de 5 min'],
+  ['gtc',     'Una compra grande y después otra normal, con pausa'],
+  ['ccc',     'Tres intentos seguidos (p. ej. 3 mouses en 2 min) → alerta'],
+  ['cctcc',   'Dos intentos, pausa, dos intentos: la pausa reinicia la cuenta'],
+  ['ccccg',   'Ataque completo: ráfaga de compras y luego una grande → bloqueo'],
+  ['cccg',    'Ráfaga mínima y compra grande → bloqueo'],
 ];
 
 const color = (c, s) => `\x1b[${c}m${s}\x1b[0m`;

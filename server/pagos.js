@@ -32,8 +32,8 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
   const ahora = Date.now();
   const simbolos = simbolosDelIntento({
     monto,
-    datosValidos,
     msDesdeAnterior: afd.ultimoIntento ? ahora - afd.ultimoIntento : null,
+    promedioCliente: compraPromedio(usuario),
   });
 
   // Paso del AFD
@@ -68,14 +68,14 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
       agregarAlerta(usuario, {
         nivel: 'sospecha',
         titulo: 'Tu tarjeta podría estar siendo probada',
-        mensaje: `Detectamos varios cargos pequeños (≤ $${UMBRALES.pequeno}) o intentos fallidos seguidos. El último fue en ${comercio}. ¿Fuiste tú?`,
+        mensaje: `Detectamos varios intentos de cargo seguidos en menos de ${UMBRALES.ventanaMin} minutos. El último fue en ${comercio} por $${monto.toLocaleString('es-MX')}. ¿Fuiste tú?`,
       });
     } else {
       tarjeta.bloqueada = true;
       agregarAlerta(usuario, {
         nivel: 'fraude',
         titulo: 'Bloqueamos tu tarjeta',
-        mensaje: `Después de los cargos de prueba se intentó un cargo grande de $${monto.toLocaleString('es-MX')} en ${comercio}. Lo rechazamos y bloqueamos tu tarjeta.`,
+        mensaje: `Después de varios intentos seguidos se intentó un cargo fuera de lo habitual de $${monto.toLocaleString('es-MX')} en ${comercio}. Lo rechazamos y bloqueamos tu tarjeta.`,
       });
     }
   }
@@ -84,6 +84,13 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
   return motivo
     ? rechazo(motivo)
     : { aprobado: true, autorizacion: randomBytes(3).toString('hex').toUpperCase(), monto };
+}
+
+// Compra promedio del cliente: su perfil de gasto
+function compraPromedio(usuario) {
+  const compras = usuario.movimientos.filter((m) => m.tipo === 'compra');
+  if (!compras.length) return 0;
+  return compras.reduce((s, m) => s - m.monto, 0) / compras.length;
 }
 
 function rechazo(motivo) {
