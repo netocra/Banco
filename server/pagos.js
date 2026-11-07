@@ -5,17 +5,22 @@ import { randomBytes } from 'node:crypto';
 import { simbolosDelIntento, transicion, esAceptacion, UMBRALES, FRAUDE } from './afd.js';
 import { buscarPorTarjeta, agregarMovimiento, agregarAlerta, notificar } from './db.js';
 import { limpiar, luhnValido } from './tarjetas.js';
+import { leerMonto, redondear } from './dinero.js';
+
+// El perfil de gasto se arma con compras de días anteriores, para que las compras de
+// una ráfaga en curso no bajen el promedio y con él el umbral de "cargo grande".
+const ANTIGUEDAD_PERFIL_MS = 24 * 60 * 60 * 1000;
 
 const MAX_CADENA = 40;
 
-export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
+export function procesarPago({ numero, exp, cvv, monto, comercio, concepto } = {}) {
   numero = limpiar(numero);
-  monto = Math.round(Number(monto) * 100) / 100;
+  monto = leerMonto(monto);
   comercio = String(comercio || 'Comercio desconocido').slice(0, 60);
   concepto = String(concepto || 'Compra').slice(0, 80);
 
   if (!luhnValido(numero)) return rechazo('Número de tarjeta inválido');
-  if (!(monto > 0)) return rechazo('Monto inválido');
+  if (!monto) return rechazo('Monto inválido');
 
   const encontrado = buscarPorTarjeta(numero);
   if (!encontrado) return rechazo('Tarjeta no emitida por Banco BBUA');
@@ -60,7 +65,7 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
   if (motivo) {
     agregarMovimiento(usuario, { tipo: 'rechazo', descripcion: `Rechazado · ${comercio}`, comercio, monto: -monto, simbolo, motivo });
   } else {
-    usuario.saldo -= monto;
+    usuario.saldo = redondear(usuario.saldo - monto);
     agregarMovimiento(usuario, { tipo: 'compra', descripcion: `${concepto} · ${comercio}`, comercio, monto: -monto, simbolo });
   }
 
@@ -96,7 +101,8 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
 
 // Compra promedio del cliente: su perfil de gasto
 function compraPromedio(usuario) {
-  const compras = usuario.movimientos.filter((m) => m.tipo === 'compra');
+  const limite = Date.now() - ANTIGUEDAD_PERFIL_MS;
+  const compras = usuario.movimientos.filter((m) => m.tipo === 'compra' && new Date(m.fecha).getTime() <= limite);
   if (!compras.length) return 0;
   return compras.reduce((s, m) => s - m.monto, 0) / compras.length;
 }

@@ -5,11 +5,12 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { usuarios, eventos, notificar, agregarMovimiento } from './db.js';
+import { usuarios, buscarUsuario, eventos, notificar, agregarMovimiento } from './db.js';
 import { procesarPago } from './pagos.js';
 import { PRODUCTOS, comprar } from './tienda.js';
 import { definicion, INICIAL, FRAUDE } from './afd.js';
 import { formatear, enmascarar } from './tarjetas.js';
+import { leerMonto, redondear } from './dinero.js';
 
 const PUERTO = Number(process.env.PORT) || 3000;
 const PUBLICO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
@@ -29,18 +30,37 @@ const sesiones = new Map();
 
 // ===== UTILIDADES HTTP =====
 
+// Error con código HTTP; su mensaje sí se le muestra al cliente
+class ErrorHttp extends Error {
+  constructor(status, mensaje) {
+    super(mensaje);
+    this.status = status;
+  }
+}
+
 function json(res, status, datos) {
   res.writeHead(status, { 'Content-Type': MIME['.json'], 'Access-Control-Allow-Origin': '*' });
   res.end(JSON.stringify(datos));
 }
 
+// Lee el cuerpo JSON; siempre devuelve un objeto plano
 async function leerCuerpo(req) {
   let cuerpo = '';
   for await (const trozo of req) {
     cuerpo += trozo;
-    if (cuerpo.length > 1e5) throw new Error('Cuerpo demasiado grande');
+    if (cuerpo.length > 1e5) throw new ErrorHttp(413, 'Cuerpo demasiado grande');
   }
-  return cuerpo ? JSON.parse(cuerpo) : {};
+  if (!cuerpo) return {};
+  let datos;
+  try {
+    datos = JSON.parse(cuerpo);
+  } catch {
+    throw new ErrorHttp(400, 'JSON inválido');
+  }
+  if (datos === null || typeof datos !== 'object' || Array.isArray(datos)) {
+    throw new ErrorHttp(400, 'Se esperaba un objeto JSON');
+  }
+  return datos;
 }
 
 function usuarioDeSesion(req, url) {
@@ -50,9 +70,8 @@ function usuarioDeSesion(req, url) {
   return id ? [id, usuarios[id]] : [null, null];
 }
 
-function montoValido(m) {
-  const n = Number(m);
-  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
+function alertasPendientes(u) {
+  return u.alertas.filter((a) => a.estado === 'pendiente');
 }
 
 function resumen(id) {
@@ -94,7 +113,8 @@ async function api(req, res, url) {
   if (metodo === 'POST' && ruta === '/api/login') {
     const { usuario, password } = await leerCuerpo(req);
     const id = String(usuario ?? '').trim().toLowerCase();
-    if (!usuarios[id] || usuarios[id].password !== password) {
+    const cuenta = buscarUsuario(id);
+    if (!cuenta || typeof password !== 'string' || cuenta.password !== password) {
       return json(res, 401, { error: 'Usuario o contraseña incorrectos.' });
     }
     const token = randomUUID();
@@ -140,19 +160,19 @@ async function api(req, res, url) {
   }
 
   if (metodo === 'POST' && ruta === '/api/depositar') {
-    const monto = montoValido((await leerCuerpo(req)).monto);
+    const monto = leerMonto((await leerCuerpo(req)).monto);
     if (!monto) return json(res, 400, { error: 'Ingresa un monto válido mayor a cero.' });
-    u.saldo += monto;
+    u.saldo = redondear(u.saldo + monto);
     agregarMovimiento(u, { tipo: 'deposito', descripcion: 'Depósito', monto });
     notificar(id);
     return json(res, 200, resumen(id));
   }
 
   if (metodo === 'POST' && ruta === '/api/retirar') {
-    const monto = montoValido((await leerCuerpo(req)).monto);
+    const monto = leerMonto((await leerCuerpo(req)).monto);
     if (!monto) return json(res, 400, { error: 'Ingresa un monto válido mayor a cero.' });
     if (monto > u.saldo) return json(res, 400, { error: `Saldo insuficiente. Disponible: $${u.saldo.toFixed(2)}` });
-    u.saldo -= monto;
+    u.saldo = redondear(u.saldo - monto);
     agregarMovimiento(u, { tipo: 'retiro', descripcion: 'Retiro', monto: -monto });
     notificar(id);
     return json(res, 200, resumen(id));
@@ -161,26 +181,30 @@ async function api(req, res, url) {
   if (metodo === 'POST' && ruta === '/api/transferir') {
     const cuerpo = await leerCuerpo(req);
     const destino = String(cuerpo.destino ?? '').trim().toLowerCase();
-    const monto = montoValido(cuerpo.monto);
+    const monto = leerMonto(cuerpo.monto);
+    const d = buscarUsuario(destino);
     if (!destino) return json(res, 400, { error: 'Ingresa una cuenta destino.' });
     if (destino === id) return json(res, 400, { error: 'No puedes transferirte a ti mismo.' });
-    if (!usuarios[destino]) return json(res, 400, { error: `Usuario "${destino}" no encontrado.` });
+    if (!d) return json(res, 400, { error: `Usuario "${destino}" no encontrado.` });
     if (!monto) return json(res, 400, { error: 'Ingresa un monto válido mayor a cero.' });
     if (monto > u.saldo) return json(res, 400, { error: `Saldo insuficiente. Disponible: $${u.saldo.toFixed(2)}` });
-    const d = usuarios[destino];
-    u.saldo -= monto;
-    d.saldo += monto;
+    u.saldo = redondear(u.saldo - monto);
+    d.saldo = redondear(d.saldo + monto);
     agregarMovimiento(u, { tipo: 'transferencia', descripcion: `Transferencia a ${d.nombre}`, monto: -monto });
     agregarMovimiento(d, { tipo: 'transferencia', descripcion: `Transferencia de ${u.nombre}`, monto });
     notificar(id, destino);
     return json(res, 200, resumen(id));
   }
 
-  // Bloquear / desbloquear tarjeta. Al desbloquear, el AFD vuelve a q0.
+  // Bloquear / desbloquear tarjeta. Al desbloquear, el AFD vuelve a q0 y se cierran las alertas pendientes.
   if (metodo === 'POST' && ruta === '/api/tarjeta/bloqueo') {
     const { bloqueada } = await leerCuerpo(req);
-    u.tarjeta.bloqueada = Boolean(bloqueada);
-    if (!u.tarjeta.bloqueada) u.afd = { estado: INICIAL, cadena: '', ultimoIntento: null };
+    if (typeof bloqueada !== 'boolean') return json(res, 400, { error: '"bloqueada" debe ser true o false' });
+    u.tarjeta.bloqueada = bloqueada;
+    if (!bloqueada) {
+      u.afd = { estado: INICIAL, cadena: '', ultimoIntento: null };
+      for (const a of alertasPendientes(u)) a.estado = 'cerrada';
+    }
     notificar(id);
     return json(res, 200, resumen(id));
   }
@@ -190,7 +214,9 @@ async function api(req, res, url) {
   if (metodo === 'POST' && m) {
     const alerta = u.alertas.find((a) => a.id === m[1]);
     if (!alerta) return json(res, 404, { error: 'Alerta no encontrada' });
+    if (alerta.estado !== 'pendiente') return json(res, 409, { error: 'La alerta ya fue respondida' });
     const { fuiYo } = await leerCuerpo(req);
+    if (typeof fuiYo !== 'boolean') return json(res, 400, { error: '"fuiYo" debe ser true o false' });
     if (fuiYo) {
       alerta.estado = 'descartada';
       if (u.afd.estado !== FRAUDE) u.afd = { estado: INICIAL, cadena: '', ultimoIntento: null };
@@ -207,8 +233,17 @@ async function api(req, res, url) {
 
 // ===== ARCHIVOS ESTÁTICOS =====
 
-async function estatico(res, url) {
-  let ruta = decodeURIComponent(url.pathname);
+async function estatico(req, res, url) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.writeHead(405, { Allow: 'GET, HEAD', 'Content-Type': 'text/plain; charset=utf-8' });
+    return res.end('Método no permitido');
+  }
+  let ruta;
+  try {
+    ruta = decodeURIComponent(url.pathname);
+  } catch {
+    throw new ErrorHttp(400, 'URL inválida');
+  }
   if (ruta === '/') ruta = '/index.html';
   if (ruta.endsWith('/')) ruta += 'index.html';
   const archivo = path.normalize(path.join(PUBLICO, ruta));
@@ -216,7 +251,7 @@ async function estatico(res, url) {
   try {
     const contenido = await fs.readFile(archivo);
     res.writeHead(200, { 'Content-Type': MIME[path.extname(archivo)] ?? 'application/octet-stream' });
-    res.end(contenido);
+    res.end(req.method === 'HEAD' ? undefined : contenido);
   } catch {
     // /banco → /banco/
     try {
@@ -230,18 +265,25 @@ async function estatico(res, url) {
   }
 }
 
-const servidor = http.createServer(async (req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host ?? 'localhost'}`);
-  try {
-    if (url.pathname.startsWith('/api/')) await api(req, res, url);
-    else await estatico(res, url);
-  } catch (err) {
-    console.error(err);
-    if (!res.headersSent) json(res, 400, { error: err.message });
-  }
-});
+export function crearServidor() {
+  return http.createServer(async (req, res) => {
+    const url = new URL(req.url, `http://${req.headers.host ?? 'localhost'}`);
+    try {
+      if (url.pathname.startsWith('/api/')) await api(req, res, url);
+      else await estatico(req, res, url);
+    } catch (err) {
+      if (res.headersSent) return res.end();
+      // Si no se leyó todo el cuerpo, la conexión ya no es reutilizable
+      if (err instanceof ErrorHttp && err.status === 413) res.setHeader('Connection', 'close');
+      if (err instanceof ErrorHttp) return json(res, err.status, { error: err.message });
+      console.error(err);
+      json(res, 500, { error: 'Error interno del servidor' });
+    }
+  });
+}
 
-servidor.listen(PUERTO, () => {
+// Sólo escucha si se ejecuta directamente (las pruebas importan crearServidor)
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) crearServidor().listen(PUERTO, () => {
   console.log(`\nBanco BBUA    → http://localhost:${PUERTO}/banco/`);
   console.log(`TechoStore     → http://localhost:${PUERTO}/tienda/`);
   console.log(`Definición AFD → http://localhost:${PUERTO}/api/afd\n`);

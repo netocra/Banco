@@ -3,6 +3,7 @@
 import { procesarPago } from './pagos.js';
 
 export const COMERCIO = 'TechoStore';
+export const MAX_POR_PRODUCTO = 99;
 
 export const PRODUCTOS = [
   { id: 'sticker',   nombre: 'Sticker holográfico',     precio: 25 },
@@ -16,16 +17,21 @@ export const PRODUCTOS = [
 ];
 
 // items: { idProducto: cantidad }
-export function comprar({ items, tarjeta }) {
-  const lineas = Object.entries(items ?? {})
+export function comprar({ items, tarjeta } = {}) {
+  const carrito = items && typeof items === 'object' && !Array.isArray(items) ? items : {};
+  const lineas = Object.entries(carrito)
     .map(([id, cantidad]) => ({ producto: PRODUCTOS.find((p) => p.id === id), cantidad: Math.floor(Number(cantidad)) }))
     .filter((l) => l.producto && l.cantidad > 0);
 
   if (!lineas.length) return { aprobado: false, motivo: 'El carrito está vacío' };
+  if (lineas.some((l) => l.cantidad > MAX_POR_PRODUCTO)) {
+    return { aprobado: false, motivo: `Cantidad no permitida (máximo ${MAX_POR_PRODUCTO} por producto)` };
+  }
 
   const monto = lineas.reduce((s, l) => s + l.producto.precio * l.cantidad, 0);
   const unidades = lineas.reduce((s, l) => s + l.cantidad, 0);
   const concepto = lineas.length === 1 && unidades === 1 ? lineas[0].producto.nombre : `${unidades} artículos`;
 
-  return procesarPago({ ...tarjeta, monto, comercio: COMERCIO, concepto });
+  const datosTarjeta = tarjeta && typeof tarjeta === 'object' ? tarjeta : {};
+  return procesarPago({ ...datosTarjeta, monto, comercio: COMERCIO, concepto });
 }

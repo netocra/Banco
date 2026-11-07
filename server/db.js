@@ -30,16 +30,26 @@ function nuevoUsuario({ password, nombre, saldo, numero, exp, cvv, compras }) {
   };
 }
 
-export const usuarios = {
-  carlos: nuevoUsuario({
-    password: '1234', nombre: 'Carlos Méndez', saldo: 5000, numero: '4521883466729804', exp: '08/29', cvv: '417',
-    compras: [[9, 'Despensa', 'Soriana', 642], [7, 'Suscripción', 'Netflix', 219], [5, 'Gasolina', 'Pemex', 500], [3, 'Viaje', 'Uber', 143], [1, 'Comida', 'Oxxo', 87]],
-  }),
-  ana: nuevoUsuario({
-    password: '4321', nombre: 'Ana García', saldo: 3200, numero: '4521991033451230', exp: '03/28', cvv: '952',
-    compras: [[12, 'Zapatos', 'Liverpool', 1450], [8, 'Suscripción', 'Spotify', 129], [4, 'Medicinas', 'Farmacias Guadalajara', 260], [2, 'Cena', 'Sanborns', 380]],
-  }),
-};
+function semilla() {
+  return {
+    carlos: nuevoUsuario({
+      password: '1234', nombre: 'Carlos Méndez', saldo: 5000, numero: '4521883466729804', exp: '08/29', cvv: '417',
+      compras: [[9, 'Despensa', 'Soriana', 642], [7, 'Suscripción', 'Netflix', 219], [5, 'Gasolina', 'Pemex', 500], [3, 'Viaje', 'Uber', 143], [1, 'Comida', 'Oxxo', 87]],
+    }),
+    ana: nuevoUsuario({
+      password: '4321', nombre: 'Ana García', saldo: 3200, numero: '4521991033451230', exp: '03/28', cvv: '952',
+      compras: [[12, 'Zapatos', 'Liverpool', 1450], [8, 'Suscripción', 'Spotify', 129], [4, 'Medicinas', 'Farmacias Guadalajara', 260], [2, 'Cena', 'Sanborns', 380]],
+    }),
+  };
+}
+
+export const usuarios = semilla();
+
+// Regresa todos los datos a su estado inicial (lo usan las pruebas)
+export function reiniciarDatos() {
+  for (const id of Object.keys(usuarios)) delete usuarios[id];
+  Object.assign(usuarios, semilla());
+}
 
 // Emite 'cambio' con el id del usuario afectado (lo escuchan las conexiones SSE)
 export const eventos = new EventEmitter();
@@ -47,6 +57,11 @@ eventos.setMaxListeners(100);
 
 export function notificar(...ids) {
   for (const id of ids) eventos.emit('cambio', id);
+}
+
+// Sólo cuentas reales: evita que "__proto__", "constructor", etc. se tomen como usuarios
+export function buscarUsuario(id) {
+  return Object.hasOwn(usuarios, id) ? usuarios[id] : null;
 }
 
 export function buscarPorTarjeta(numero) {

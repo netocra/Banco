@@ -171,7 +171,11 @@ function avisarAlertasNuevas() {
 }
 
 async function responderAlerta(id, fuiYo) {
-  datos = await api(`/api/alertas/${id}/respuesta`, { fuiYo });
+  try {
+    datos = await api(`/api/alertas/${id}/respuesta`, { fuiYo });
+  } catch (err) {
+    return cargar().then(() => showToast(err.message));
+  }
   refreshDashboard();
   showToast(fuiYo ? 'Gracias por confirmarlo.' : 'Tarjeta bloqueada.');
 }
@@ -188,7 +192,11 @@ function toggleVisibility() {
 
 async function toggleLock() {
   const bloquear = !datos.tarjeta.bloqueada;
-  datos = await api('/api/tarjeta/bloqueo', { bloqueada: bloquear });
+  try {
+    datos = await api('/api/tarjeta/bloqueo', { bloqueada: bloquear });
+  } catch (err) {
+    return showToast(err.message);
+  }
   refreshDashboard();
   showToast(bloquear ? 'Tarjeta bloqueada.' : 'Tarjeta desbloqueada.');
 }
