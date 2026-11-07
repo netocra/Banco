@@ -1,16 +1,5 @@
-// ===== CATÁLOGO =====
-const COMERCIO = 'TechoStore';
-
-const PRODUCTOS = [
-  { id: 'sticker',   nombre: 'Sticker holográfico',       precio: 25 },
-  { id: 'llavero',   nombre: 'Llavero de acrílico',       precio: 45 },
-  { id: 'taza',      nombre: 'Taza para programadores',   precio: 189 },
-  { id: 'cable',     nombre: 'Cable USB-C trenzado',      precio: 149 },
-  { id: 'mouse',     nombre: 'Mouse inalámbrico',         precio: 399 },
-  { id: 'teclado',   nombre: 'Teclado mecánico',          precio: 1299 },
-  { id: 'audifonos', nombre: 'Audífonos Bluetooth',       precio: 899 },
-  { id: 'laptop',    nombre: 'Laptop 14" Ryzen 7',        precio: 15999 },
-];
+// ===== CATÁLOGO (lo da el servidor de la tienda) =====
+let PRODUCTOS = [];
 
 // ===== CARRITO (se guarda en localStorage) =====
 let carrito = {};
@@ -25,7 +14,7 @@ const fmt = (n) => n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN
 // Color estable por producto para la miniatura
 const hue = (id) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
 const producto = (id) => PRODUCTOS.find((p) => p.id === id);
-const total = () => Object.entries(carrito).reduce((s, [id, c]) => s + producto(id).precio * c, 0);
+const total = () => Object.entries(carrito).reduce((s, [id, c]) => s + (producto(id)?.precio ?? 0) * c, 0);
 
 function agregar(id) {
   carrito[id] = (carrito[id] ?? 0) + 1;
@@ -109,26 +98,23 @@ document.getElementById('form-pago').addEventListener('submit', async (e) => {
   const btn = document.getElementById('btn-pagar');
   const err = document.getElementById('pago-error');
   const monto = total();
-  const concepto = Object.keys(carrito).length === 1
-    ? producto(Object.keys(carrito)[0]).nombre
-    : `${Object.values(carrito).reduce((a, b) => a + b, 0)} artículos`;
 
   btn.disabled = true;
   btn.textContent = 'Procesando…';
   err.classList.add('hidden');
 
   try {
-    const res = await fetch('/api/pagos', {
+    const res = await fetch('/api/tienda/compra', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        numero: document.getElementById('pago-numero').value,
-        exp: document.getElementById('pago-exp').value,
-        cvv: document.getElementById('pago-cvv').value,
-        titular: document.getElementById('pago-titular').value,
-        monto,
-        comercio: COMERCIO,
-        concepto,
+        items: carrito,
+        tarjeta: {
+          numero: document.getElementById('pago-numero').value,
+          exp: document.getElementById('pago-exp').value,
+          cvv: document.getElementById('pago-cvv').value,
+          titular: document.getElementById('pago-titular').value,
+        },
       }),
     });
     const r = await res.json();
@@ -155,5 +141,12 @@ document.getElementById('form-pago').addEventListener('submit', async (e) => {
 });
 
 // ===== INIT =====
-renderCatalogo();
-renderCarrito();
+fetch('/api/tienda/productos')
+  .then((r) => r.json())
+  .then((productos) => {
+    PRODUCTOS = productos;
+    // Quitar del carrito guardado productos que ya no existan
+    for (const id of Object.keys(carrito)) if (!producto(id)) delete carrito[id];
+    renderCatalogo();
+    renderCarrito();
+  });

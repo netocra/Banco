@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { usuarios, eventos, notificar, agregarMovimiento } from './db.js';
 import { procesarPago } from './pagos.js';
+import { PRODUCTOS, comprar } from './tienda.js';
 import { definicion, INICIAL } from './afd.js';
 import { formatear, enmascarar } from './tarjetas.js';
 
@@ -101,9 +102,15 @@ async function api(req, res, url) {
     return json(res, 200, { token, usuario: id });
   }
 
-  // Pasarela que usan los comercios (la tienda y el script de pruebas)
+  // Pasarela del banco para comercios
   if (metodo === 'POST' && ruta === '/api/pagos') {
     return json(res, 200, procesarPago(await leerCuerpo(req)));
+  }
+
+  // TechoStore
+  if (metodo === 'GET' && ruta === '/api/tienda/productos') return json(res, 200, PRODUCTOS);
+  if (metodo === 'POST' && ruta === '/api/tienda/compra') {
+    return json(res, 200, comprar(await leerCuerpo(req)));
   }
 
   // --- Requieren sesión ---
