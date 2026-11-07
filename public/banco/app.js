@@ -95,9 +95,7 @@ function refreshDashboard() {
   document.getElementById('display-balance').textContent = fmt(u.saldo);
   document.getElementById('debit-card').classList.toggle('bloqueada', u.tarjeta.bloqueada);
   document.getElementById('lock-label').textContent = u.tarjeta.bloqueada ? 'Desbloquear' : 'Bloquear';
-  document.getElementById('lock-ayuda').textContent = u.tarjeta.bloqueada
-    ? 'Vuelve a permitir cargos con tu tarjeta.'
-    : 'Congela los cargos por tu seguridad.';
+  document.getElementById('btn-lock').title = u.tarjeta.bloqueada ? 'Desbloquear tarjeta' : 'Bloquear tarjeta';
   renderCardData();
   renderAlertas();
   renderTransactions();
@@ -105,6 +103,8 @@ function refreshDashboard() {
 
 function renderCardData() {
   const t = datos.tarjeta;
+  document.getElementById('debit-card').classList.toggle('datos-visibles', balanceVisible);
+  document.getElementById('btn-toggle-visibility').title = balanceVisible ? 'Ocultar datos' : 'Mostrar datos';
   document.getElementById('display-account').textContent = balanceVisible ? t.numero : t.enmascarada;
   document.getElementById('display-extra').textContent = balanceVisible ? `VENCE ${t.exp}   CVV ${t.cvv}` : 'VENCE **/**   CVV ***';
 }
@@ -201,6 +201,28 @@ async function responderAlerta(id, fuiYo) {
 function toggleVisibility() {
   balanceVisible = !balanceVisible;
   renderCardData();
+}
+
+// ===== COPIAR DATOS DE LA TARJETA =====
+// Formato que la tienda reconoce al pegarlo en su formulario de pago.
+
+async function copiarTarjeta() {
+  const t = datos.tarjeta;
+  const texto = `Titular: ${datos.nombre.toUpperCase()}\nNúmero: ${t.numero}\nVence: ${t.exp}\nCVV: ${t.cvv}`;
+  try {
+    await navigator.clipboard.writeText(texto);
+  } catch {
+    // Respaldo para navegadores sin acceso al portapapeles
+    const area = Object.assign(document.createElement('textarea'), { value: texto });
+    document.body.append(area);
+    area.select();
+    document.execCommand('copy');
+    area.remove();
+  }
+  const boton = document.getElementById('btn-copiar');
+  boton.classList.add('copiado');
+  setTimeout(() => boton.classList.remove('copiado'), 1600);
+  showToast('Datos de la tarjeta copiados. Pégalos en el pago de la tienda.');
 }
 
 // ===== BLOQUEO DE TARJETA =====

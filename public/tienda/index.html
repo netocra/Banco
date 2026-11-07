@@ -73,6 +73,10 @@
     <form id="form-pago" class="modal" autocomplete="off">
       <h2>Pago con tarjeta</h2>
       <p class="muted">Total a pagar <strong id="pago-total"></strong></p>
+      <button type="button" class="pegar" id="btn-pegar" onclick="pegarTarjeta()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="4" width="8" height="4" rx="1" /><path d="M16 6h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2" /></svg>
+        Pegar datos de tarjeta
+      </button>
 
       <label>Titular
         <input id="pago-titular" required placeholder="Como aparece en la tarjeta" />

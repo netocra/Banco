@@ -237,6 +237,59 @@ document.getElementById('pago-cvv').addEventListener('input', (e) => {
   e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
 });
 
+// ===== PEGAR DATOS DE TARJETA =====
+// Reconoce el texto que copia el botón de la tarjeta en Banco BBUA
+// (Titular / Número / Vence / CVV) y llena los cuatro campos de una vez.
+
+function leerDatosTarjeta(texto) {
+  const numero = texto.match(/\b(?:\d[ -]?){13,19}\b/)?.[0].replace(/\D/g, '');
+  const exp = texto.match(/\b(0[1-9]|1[0-2])\s*\/\s*(\d{2})\b/);
+  const cvv = texto.match(/cvv\D{0,3}(\d{3,4})/i)?.[1];
+  const titular = texto.match(/titular\s*:\s*(.+)/i)?.[1].trim();
+  if (!numero || !exp || !cvv) return null;
+  return { numero, exp: `${exp[1]}/${exp[2]}`, cvv, titular };
+}
+
+function llenarTarjeta(d) {
+  const poner = (id, valor) => {
+    const campo = document.getElementById(id);
+    campo.value = valor;
+    campo.dispatchEvent(new Event('input')); // aplica el formato de cada campo
+  };
+  if (d.titular) poner('pago-titular', d.titular);
+  poner('pago-numero', d.numero);
+  poner('pago-exp', d.exp);
+  poner('pago-cvv', d.cvv);
+}
+
+function avisoPegado(texto, error = false) {
+  const aviso = document.getElementById('pago-error');
+  aviso.textContent = texto;
+  aviso.classList.toggle('aviso-ok', !error);
+  aviso.classList.remove('hidden');
+}
+
+// Ctrl+V en cualquier campo del formulario
+document.getElementById('form-pago').addEventListener('paste', (e) => {
+  const datos = leerDatosTarjeta(e.clipboardData?.getData('text') ?? '');
+  if (!datos) return; // pegado normal
+  e.preventDefault();
+  llenarTarjeta(datos);
+  avisoPegado('Datos de la tarjeta pegados.');
+});
+
+// Botón "Pegar datos de tarjeta"
+async function pegarTarjeta() {
+  try {
+    const datos = leerDatosTarjeta(await navigator.clipboard.readText());
+    if (!datos) return avisoPegado('No hay datos de tarjeta copiados. Cópialos desde Banco BBUA.', true);
+    llenarTarjeta(datos);
+    avisoPegado('Datos de la tarjeta pegados.');
+  } catch {
+    avisoPegado('El navegador no dio acceso al portapapeles. Haz clic en un campo y presiona Ctrl+V.', true);
+  }
+}
+
 // Se envía a la pasarela de Banco BBUA
 document.getElementById('form-pago').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -247,6 +300,7 @@ document.getElementById('form-pago').addEventListener('submit', async (e) => {
   btn.disabled = true;
   btn.textContent = 'Procesando…';
   err.classList.add('hidden');
+  err.classList.remove('aviso-ok');
 
   try {
     const res = await fetch('/api/tienda/compra', {

@@ -222,6 +222,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   position: absolute;
   top: 64px;
   right: 22px;
+  z-index: 2;
   display: grid;
   place-items: center;
   width: 36px;
@@ -234,11 +235,76 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   transition: background .2s;
 }
 .dc-ojo:hover { background: rgba(255, 255, 255, .22); }
+/* Ojo cerrado mientras los datos están ocultos; abierto cuando se muestran */
+.ojo-abierto { display: none; }
+.debit-card.datos-visibles .ojo-abierto { display: block; }
+.debit-card.datos-visibles .ojo-cerrado { display: none; }
+.debit-card.datos-visibles .dc-ojo { background: rgba(255, 255, 255, .24); }
+
+.dc-copiar {
+  position: absolute;
+  top: 156px;
+  right: 22px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s, transform .2s;
+}
+.dc-copiar:hover { background: rgba(255, 255, 255, .22); transform: scale(1.08); }
+.dc-copiar svg { width: 17px; height: 17px; }
+.copiar-listo { display: none; }
+.dc-copiar.copiado { border-color: rgba(52, 211, 153, .6); background: rgba(16, 185, 129, .2); color: #34d399; }
+.dc-copiar.copiado .copiar-icono { display: none; }
+.dc-copiar.copiado .copiar-listo { display: block; }
 .dc-ojo svg { width: 18px; height: 18px; }
+
+.dc-candado {
+  position: absolute;
+  top: 110px;
+  right: 22px;
+  z-index: 2;                     /* encima del velo de "bloqueada" para poder desbloquear */
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(52, 211, 153, .55);
+  border-radius: 50%;
+  background: rgba(16, 185, 129, .18);
+  color: #34d399;
+  cursor: pointer;
+  transition: background .25s, color .25s, border-color .25s, transform .2s;
+}
+.dc-candado:hover { transform: scale(1.08); }
+.dc-candado svg { width: 18px; height: 18px; }
+.candado-cerrado { display: none; }
+.debit-card.bloqueada .dc-candado {
+  border-color: rgba(248, 113, 113, .7);
+  background: rgba(239, 68, 68, .25);
+  color: #f87171;
+}
+.debit-card.bloqueada .candado-abierto { display: none; }
+.debit-card.bloqueada .candado-cerrado { display: block; }
+
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 .dc-locked {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: none;
   flex-direction: column;
   align-items: center;
@@ -251,56 +317,6 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 }
 .dc-locked svg { width: 32px; height: 32px; }
 .debit-card.bloqueada .dc-locked { display: flex; }
-
-/* ===== OPCIONES ===== */
-.opciones {
-  list-style: none;
-  border-radius: var(--radio-m);
-  background: var(--superficie);
-  box-shadow: var(--sombra);
-}
-.opciones li + li { border-top: 1px solid var(--linea); }
-.opcion {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 16px 18px;
-  border: 0;
-  background: none;
-  color: inherit;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.opciones li:first-child .opcion { border-radius: var(--radio-m) var(--radio-m) 0 0; }
-.opciones li:last-child .opcion { border-radius: 0 0 var(--radio-m) var(--radio-m); }
-button.opcion:hover { background: #f7f9fc; }
-button.opcion:hover .chevron { transform: translateX(3px); color: var(--gris); }
-.opcion--estado { cursor: default; }
-.opcion-icono {
-  display: grid;
-  place-items: center;
-  flex: 0 0 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: #eaf3fc;
-  color: var(--azul);
-}
-.opcion-icono svg { width: 20px; height: 20px; }
-.opcion-texto { flex: 1; min-width: 0; }
-.opcion-texto strong { display: block; font-size: .94rem; font-weight: 600; }
-.opcion-texto small { display: block; margin-top: 2px; color: var(--gris); font-size: .8rem; }
-.chevron { width: 18px; height: 18px; color: var(--tenue); transition: transform .2s, color .2s; }
-.estado-activo {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #e3f5ec;
-  color: var(--verde);
-  font-size: .74rem;
-  font-weight: 600;
-}
-#btn-lock .opcion-icono { background: #fdecec; color: var(--rojo); }
 
 /* ===== MOVIMIENTOS ===== */
 .transaction-list {

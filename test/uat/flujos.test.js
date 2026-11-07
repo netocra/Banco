@@ -153,6 +153,47 @@ describe('Banco: operaciones', () => {
     await ana.waitForFunction(() => /3,300\.00/.test(document.getElementById('display-balance').textContent));
   });
 
+  test('el ojo y el candado de la tarjeta cambian según su estado', async () => {
+    const p = await entrarAlBanco();
+    assert.equal(await p.isVisible('.ojo-cerrado'), true);
+    assert.equal(await p.isVisible('.ojo-abierto'), false);
+    await p.click('#btn-toggle-visibility');
+    assert.equal(await p.isVisible('.ojo-abierto'), true);
+    assert.equal(await p.isVisible('.candado-abierto'), true);
+    await p.click('#btn-lock');
+    await p.waitForSelector('.candado-cerrado', { state: 'visible' });
+    assert.equal(await p.isVisible('.candado-abierto'), false);
+  });
+
+  test('copiar los datos de la tarjeta y pegarlos en la tienda llena el pago', async () => {
+    await contexto.close();
+    contexto = await navegador.newContext({ viewport: { width: 1280, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
+    await contexto.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort());
+    const banco = await entrarAlBanco();
+    await banco.click('#btn-copiar');
+    await banco.waitForSelector('#btn-copiar.copiado');
+
+    const tienda = await abrirTienda();
+    await tienda.click('[data-add="taza"]');
+    await tienda.click('.cart-btn');
+    await tienda.click('#btn-checkout');
+    // Ctrl+V en un campo
+    await tienda.click('#pago-cvv');
+    await tienda.keyboard.press('Control+V');
+    assert.equal(await tienda.inputValue('#pago-titular'), 'CARLOS MÉNDEZ');
+    assert.equal(await tienda.inputValue('#pago-numero'), '4521 8834 6672 9804');
+    assert.equal(await tienda.inputValue('#pago-exp'), '08/29');
+    assert.equal(await tienda.inputValue('#pago-cvv'), '417');
+    // Botón "Pegar datos de tarjeta" sobre el formulario vacío
+    for (const id of ['#pago-titular', '#pago-numero', '#pago-exp', '#pago-cvv']) await tienda.fill(id, '');
+    await tienda.click('#btn-pegar');
+    // La lectura del portapapeles es asíncrona
+    await tienda.waitForFunction(() => document.getElementById('pago-numero').value !== '');
+    assert.equal(await tienda.inputValue('#pago-numero'), '4521 8834 6672 9804');
+    await tienda.click('#btn-pagar');
+    await tienda.waitForSelector('#resultado:not(.hidden)');
+  });
+
   test('bloquear y desbloquear desde la app', async () => {
     const p = await entrarAlBanco();
     await p.click('#btn-lock');
