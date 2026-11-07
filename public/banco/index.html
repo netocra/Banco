@@ -13,45 +13,22 @@
 
   <div class="app" id="inicio">
 
-    <!-- ===== BARRA LATERAL ===== -->
-    <aside class="lateral">
-      <a class="marca" href="#inicio">BBUA</a>
-
-      <nav class="nav" aria-label="Secciones">
-        <a class="nav-item activo" href="#inicio">
-          <svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-8Z" /></svg>Inicio
-        </a>
-        <a class="nav-item" href="#seccion-movimientos">
-          <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2" /></svg>Movimientos
-        </a>
-        <a class="nav-item" href="#seccion-tarjeta">
-          <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M3 10h18" /></svg>Mi tarjeta
-        </a>
-        <a class="nav-item" href="#seccion-seguridad">
-          <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z" /></svg>Seguridad
-        </a>
-      </nav>
-
-      <button class="enviar" onclick="openModal('modal-transfer')">
-        Enviar dinero
-        <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6" /></svg>
-      </button>
-
-      <button id="btn-logout" class="nav-item salir">
-        <svg viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" /></svg>Cerrar sesión
-      </button>
-    </aside>
 
     <div class="principal">
 
       <!-- ===== ENCABEZADO ===== -->
       <header class="cielo">
-        <div class="saludo">
-          <span class="avatar" id="avatar"></span>
-          <div>
-            <span class="saludo-hola" id="saludo">Hola</span>
-            <span class="saludo-nombre" id="nav-user"></span>
+        <div class="cielo-top">
+          <div class="saludo">
+            <span class="avatar" id="avatar"></span>
+            <div>
+              <span class="saludo-hola" id="saludo">Hola</span>
+              <span class="saludo-nombre" id="nav-user"></span>
+            </div>
           </div>
+          <button id="btn-logout" class="salir">
+            <svg viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" /></svg>Cerrar sesión
+          </button>
         </div>
 
         <div class="cielo-fila">

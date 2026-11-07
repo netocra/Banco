@@ -334,14 +334,6 @@ document.querySelectorAll('[data-teclado]').forEach((teclado) => {
   }, true);
 })();
 
-// ===== NAVEGACIÓN LATERAL =====
-
-document.querySelectorAll('a.nav-item').forEach((item) => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('a.nav-item').forEach((i) => i.classList.toggle('activo', i === item));
-  });
-});
-
 // ===== INIT =====
 if (token) {
   if ('Notification' in window && Notification.permission === 'default') {
