@@ -47,7 +47,7 @@ export const FRAUDE = 'q6';
 // δ — función de transición
 export const DELTA = {
   q0: { c: 'q1', g: 'q1', r: 'q3', t: 'q0' },
-  q1: { c: 'q2', g: 'q2', r: 'q3', t: 'q0' },
+  q1: { c: 'q2', g: 'q2', r: 'q2', t: 'q0' },
   q2: { c: 'q5', g: 'q5', r: 'q5', t: 'q0' },
   q3: { c: 'q2', g: 'q5', r: 'q4', t: 'q0' },
   q4: { c: 'q4', g: 'q6', r: 'q4', t: 'q0' },
