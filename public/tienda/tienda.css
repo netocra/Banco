@@ -43,7 +43,8 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .logo { font-size: 1.35rem; font-weight: 800; color: var(--text); text-decoration: none; letter-spacing: -.02em; }
-.logo span { color: var(--brand); }
+.logo { display: inline-flex; align-items: center; }
+.logo-son { height: 44px; width: auto; margin-left: .15rem; border-radius: 6px; }
 
 .cart-btn {
   display: flex; align-items: center; gap: .4rem;
