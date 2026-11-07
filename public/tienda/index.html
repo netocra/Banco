@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TechoStore — Tienda en línea</title>
+  <link rel="stylesheet" href="tienda.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="logo" href="./">Techo<span>Store</span></a>
+    <button class="cart-btn" onclick="abrirCarrito()">
+      Carrito <span id="cart-count" class="cart-count">0</span>
+    </button>
+  </header>
+
+  <section class="hero">
+    <h1>Todo lo que necesitas, en un clic.</h1>
+    <p>Envío gratis en compras mayores a $999. Pagos procesados por <strong>Banco Techo</strong>.</p>
+  </section>
+
+  <main id="catalogo" class="catalogo"></main>
+
+  <!-- ===== CARRITO ===== -->
+  <div id="carrito" class="drawer-overlay hidden" onclick="if (event.target === this) cerrarCarrito()">
+    <aside class="drawer">
+      <div class="drawer-head">
+        <h2>Tu carrito</h2>
+        <button class="icon-btn" onclick="cerrarCarrito()" aria-label="Cerrar">✕</button>
+      </div>
+      <ul id="cart-items" class="cart-items"></ul>
+      <div class="drawer-foot">
+        <div class="total-row"><span>Total</span><strong id="cart-total">$0.00</strong></div>
+        <button id="btn-checkout" class="btn" onclick="abrirPago()">Ir a pagar</button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ===== PAGO ===== -->
+  <div id="pago" class="modal-overlay hidden" onclick="if (event.target === this) cerrarPago()">
+    <form id="form-pago" class="modal" autocomplete="off">
+      <h2>Pago con tarjeta</h2>
+      <p class="muted">Total a pagar: <strong id="pago-total"></strong></p>
+
+      <label>Titular
+        <input id="pago-titular" required placeholder="Como aparece en la tarjeta" />
+      </label>
+      <label>Número de tarjeta
+        <input id="pago-numero" required inputmode="numeric" maxlength="23" placeholder="0000 0000 0000 0000" />
+      </label>
+      <div class="row">
+        <label>Vencimiento
+          <input id="pago-exp" required inputmode="numeric" maxlength="5" placeholder="MM/AA" />
+        </label>
+        <label>CVV
+          <input id="pago-cvv" required inputmode="numeric" maxlength="4" placeholder="123" type="password" />
+        </label>
+      </div>
+
+      <p id="pago-error" class="error hidden"></p>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="cerrarPago()">Cancelar</button>
+        <button id="btn-pagar" type="submit" class="btn">Pagar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ===== RESULTADO ===== -->
+  <div id="resultado" class="modal-overlay hidden">
+    <div class="modal center">
+      <h2>¡Pago aprobado!</h2>
+      <p class="muted">Autorización <strong id="res-auth"></strong> · <span id="res-monto"></span></p>
+      <button class="btn" onclick="document.getElementById('resultado').classList.add('hidden')">Seguir comprando</button>
+    </div>
+  </div>
+
+  <script src="tienda.js"></script>
+</body>
+</html>
