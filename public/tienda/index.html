@@ -4,23 +4,84 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Amason — Tienda en línea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Playfair+Display:ital,wght@0,400..700;1,400..600&display=swap" />
   <link rel="stylesheet" href="tienda.css" />
 </head>
 <body>
 
-  <header class="topbar">
-    <a class="logo" href="./" aria-label="Amason">Ama<img class="logo-son" src="son.png" alt="son" /></a>
-    <button class="cart-btn" onclick="abrirCarrito()">
-      Carrito <span id="cart-count" class="cart-count">0</span>
-    </button>
-  </header>
+  <div class="marco">
 
-  <section class="hero">
-    <h1>Todo lo que necesitas, en un clic.</h1>
-    <p>Envío gratis en compras mayores a $999. Pagos procesados por <strong>Banco BBUA</strong>.</p>
-  </section>
+    <!-- ===== BARRA SUPERIOR ===== -->
+    <header class="topbar">
+      <div class="topbar-izq">
+        <a class="pill pill--nuevo" href="#coleccion"><span class="punto"></span>Nuevo</a>
+      </div>
 
-  <main id="catalogo" class="catalogo"></main>
+      <a class="logo" href="./" aria-label="Amason">
+        <span class="logo-ama">Ama</span><img class="logo-son" src="son.png" alt="son" />
+      </a>
+
+      <div class="topbar-der">
+        <label class="pill pill--buscar">
+          <input id="buscar" type="search" placeholder="Buscar" aria-label="Buscar productos" autocomplete="off" />
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+        </label>
+        <button class="pill cart-btn" onclick="abrirCarrito()">
+          Carrito <span id="cart-count" class="cart-count">0</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== VITRINA (BENTO) ===== -->
+    <section class="vitrina" aria-label="Destacados">
+
+      <article class="tile hero" style="--i: 0">
+        <div class="hero-foto" id="hero-foto"></div>
+        <div class="hero-texto">
+          <h1>Audífonos<br />Bluetooth</h1>
+          <p>Sonido envolvente, cancelación de ruido y hasta 30 horas de batería.</p>
+          <div class="hero-acciones">
+            <button class="boton boton--solido" onclick="comprarAhora('audifonos')">Comprar ahora</button>
+            <a class="boton boton--vidrio" href="#coleccion">Explorar</a>
+          </div>
+        </div>
+        <a class="hero-scroll" href="#coleccion">Desliza <span aria-hidden="true">→</span></a>
+      </article>
+
+      <div class="columna-destacados" id="destacados"></div>
+
+      <article class="tile sello" style="--i: 4">
+        <h2>Audífonos<br />Bluetooth</h2>
+      </article>
+
+      <article class="tile confianza" style="--i: 5">
+        <p>Elegido por más de 12,000 clientes · Calificación 4.9/5</p>
+      </article>
+
+      <article class="tile carino" style="--i: 6">
+        <h3>Hecho con cariño</h3>
+        <p>Cada producto se elige con atención al detalle, materiales de calidad y un diseño que dura. Piezas útiles y bonitas para tu día a día, con pagos protegidos por Banco BBUA.</p>
+        <a class="enlace" href="#coleccion">Descubre más</a>
+      </article>
+    </section>
+
+    <!-- ===== COLECCIÓN ===== -->
+    <section class="coleccion" id="coleccion">
+      <header class="coleccion-head">
+        <h2>La colección</h2>
+        <span id="coleccion-cuenta" class="coleccion-cuenta"></span>
+      </header>
+      <main id="catalogo" class="catalogo"></main>
+      <p id="sin-resultados" class="sin-resultados hidden">No encontramos productos con ese nombre.</p>
+    </section>
+
+    <footer class="pie">
+      <span class="pie-marca">Amason</span>
+      <span>Envío gratis en compras mayores a $999 · Pagos procesados por Banco BBUA</span>
+    </footer>
+  </div>
 
   <!-- ===== CARRITO ===== -->
   <div id="carrito" class="drawer-overlay hidden" onclick="if (event.target === this) cerrarCarrito()">
@@ -41,7 +102,7 @@
   <div id="pago" class="modal-overlay hidden" onclick="if (event.target === this) cerrarPago()">
     <form id="form-pago" class="modal" autocomplete="off">
       <h2>Pago con tarjeta</h2>
-      <p class="muted">Total a pagar: <strong id="pago-total"></strong></p>
+      <p class="muted">Total a pagar <strong id="pago-total"></strong></p>
 
       <label>Titular
         <input id="pago-titular" required placeholder="Como aparece en la tarjeta" />
@@ -70,7 +131,7 @@
   <!-- ===== RESULTADO ===== -->
   <div id="resultado" class="modal-overlay hidden">
     <div class="modal center">
-      <h2>¡Pago aprobado!</h2>
+      <h2>Pago aprobado</h2>
       <p class="muted">Autorización <strong id="res-auth"></strong> · <span id="res-monto"></span></p>
       <button class="btn" onclick="document.getElementById('resultado').classList.add('hidden')">Seguir comprando</button>
     </div>

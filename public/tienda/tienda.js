@@ -17,7 +17,9 @@ const total = () => Object.entries(carrito).reduce((s, [id, c]) => s + (producto
 function agregar(id) {
   carrito[id] = (carrito[id] ?? 0) + 1;
   guardar();
+  // El producto puede estar oculto por la búsqueda
   const btn = document.querySelector(`[data-add="${id}"]`);
+  if (!btn) return;
   btn.textContent = 'Agregado';
   setTimeout(() => (btn.textContent = 'Agregar al carrito'), 900);
 }
@@ -42,14 +44,54 @@ const IMAGENES = {
   laptop:    'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80',
 };
 
-function renderCatalogo() {
-  document.getElementById('catalogo').innerHTML = PRODUCTOS.map((p) => `
-    <article class="producto">
+// Textos de los productos destacados de la vitrina
+const DESTACADOS = [
+  { id: 'teclado', texto: 'Switches táctiles y teclas de doble inyección.' },
+  { id: 'laptop',  texto: 'Potencia de escritorio en 1.3 kg.' },
+];
+
+// Si una imagen no carga (p. ej. sin internet), se quita y se muestra el nombre
+const SIN_IMAGEN = "this.onerror = null; this.parentElement.classList.add('sin-imagen'); this.remove()";
+
+function renderVitrina() {
+  document.getElementById('hero-foto').style.backgroundImage =
+    `url("${IMAGENES.audifonos.replace('w=400', 'w=1600')}"), ${getComputedStyle(document.getElementById('hero-foto')).backgroundImage}`;
+
+  document.getElementById('destacados').innerHTML = DESTACADOS.map(({ id, texto }, i) => {
+    const p = producto(id);
+    if (!p) return '';
+    return `
+      <article class="tile destacado" style="--i: ${i + 1}">
+        <div class="destacado-foto" data-nombre="${p.nombre.split(' ')[0]}">
+          <img src="${IMAGENES[id]}" alt="${p.nombre}" onerror="${SIN_IMAGEN}" />
+        </div>
+        <div class="destacado-texto">
+          <h3>${p.nombre}</h3>
+          <p>${texto}</p>
+          <button class="enlace" onclick="comprarAhora('${id}')">Comprar · ${fmt(p.precio)}</button>
+        </div>
+      </article>`;
+  }).join('');
+}
+
+function comprarAhora(id) {
+  agregar(id);
+  abrirCarrito();
+}
+
+function renderCatalogo(filtro = '') {
+  const normalizar = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const visibles = PRODUCTOS.filter((p) => normalizar(p.nombre).includes(normalizar(filtro.trim())));
+  document.getElementById('coleccion-cuenta').textContent = `${String(visibles.length).padStart(2, '0')} piezas`;
+  document.getElementById('sin-resultados').classList.toggle('hidden', visibles.length > 0);
+  document.getElementById('catalogo').innerHTML = visibles.map((p, i) => `
+    <article class="producto" style="--i: ${i}">
+      <span class="producto-num">${String(PRODUCTOS.indexOf(p) + 1).padStart(2, '0')}</span>
       <div class="producto-img" data-nombre="${p.nombre.split(' ')[0]}">
         <img src="${IMAGENES[p.id] ?? 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80'}"
              alt="${p.nombre}"
              loading="lazy"
-             onerror="this.onerror = null; this.parentElement.classList.add('sin-imagen'); this.remove()" />
+             onerror="${SIN_IMAGEN}" />
       </div>
       <h3>${p.nombre}</h3>
       <p class="precio">${fmt(p.precio)}</p>
@@ -162,6 +204,12 @@ fetch('/api/tienda/productos')
     PRODUCTOS = productos;
     // Quitar del carrito guardado productos que ya no existan
     for (const id of Object.keys(carrito)) if (!producto(id)) delete carrito[id];
+    renderVitrina();
     renderCatalogo();
     renderCarrito();
   });
+
+document.getElementById('buscar').addEventListener('input', (e) => {
+  renderCatalogo(e.target.value);
+  if (e.target.value) document.getElementById('coleccion').scrollIntoView({ block: 'start' });
+});
