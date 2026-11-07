@@ -1,0 +1,16 @@
+{
+  "name": "banco-techo",
+  "version": "1.0.0",
+  "description": "Detector de patrones de fraude (card testing) con un Autómata Finito Determinista — Proyecto de Teoría de la Computación",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "ataque": "node scripts/card-tester.js",
+    "pruebas": "node scripts/probar-afd.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
