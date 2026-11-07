@@ -1,4 +1,4 @@
-// ===== SERVIDOR: Banco Techo + TechoStore =====
+// ===== SERVIDOR: Banco BBUA + TechoStore =====
 // Sin dependencias: sólo módulos nativos de Node.
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -242,7 +242,7 @@ const servidor = http.createServer(async (req, res) => {
 });
 
 servidor.listen(PUERTO, () => {
-  console.log(`\nBanco Techo    → http://localhost:${PUERTO}/banco/`);
+  console.log(`\nBanco BBUA    → http://localhost:${PUERTO}/banco/`);
   console.log(`TechoStore     → http://localhost:${PUERTO}/tienda/`);
   console.log(`Definición AFD → http://localhost:${PUERTO}/api/afd\n`);
 });

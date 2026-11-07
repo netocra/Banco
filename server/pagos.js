@@ -18,7 +18,7 @@ export function procesarPago({ numero, exp, cvv, monto, comercio, concepto }) {
   if (!(monto > 0)) return rechazo('Monto inválido');
 
   const encontrado = buscarPorTarjeta(numero);
-  if (!encontrado) return rechazo('Tarjeta no emitida por Banco Techo');
+  if (!encontrado) return rechazo('Tarjeta no emitida por Banco BBUA');
   const [id, usuario] = encontrado;
   const { tarjeta, afd } = usuario;
 

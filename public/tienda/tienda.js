@@ -32,10 +32,27 @@ function cambiar(id, delta) {
 
 // ===== RENDER =====
 
+// Imágenes de producto (Unsplash / dominio público)
+const IMAGENES = {
+  sticker:   'https://images.unsplash.com/photo-1572375992501-4b0892d50c69?w=400&q=80',
+  llavero:   'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&q=80',
+  taza:      'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400&q=80',
+  cable:     'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400&q=80',
+  mouse:     'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&q=80',
+  teclado:   'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=80',
+  audifonos: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
+  laptop:    'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80',
+};
+
 function renderCatalogo() {
   document.getElementById('catalogo').innerHTML = PRODUCTOS.map((p) => `
     <article class="producto">
-      <div class="producto-img" style="--h: ${hue(p.id)}">${p.nombre.split(' ')[0]}</div>
+      <div class="producto-img">
+        <img src="${IMAGENES[p.id] ?? 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80'}"
+             alt="${p.nombre}"
+             loading="lazy"
+             onerror="this.src='https://placehold.co/400x300?text=${encodeURIComponent(p.nombre)}'" />
+      </div>
       <h3>${p.nombre}</h3>
       <p class="precio">${fmt(p.precio)}</p>
       <button class="btn" data-add="${p.id}" onclick="agregar('${p.id}')">Agregar al carrito</button>
@@ -91,7 +108,7 @@ document.getElementById('pago-cvv').addEventListener('input', (e) => {
   e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
 });
 
-// ===== PAGO: se envía a la pasarela de Banco Techo =====
+// ===== PAGO: se envía a la pasarela de Banco BBUA =====
 
 document.getElementById('form-pago').addEventListener('submit', async (e) => {
   e.preventDefault();

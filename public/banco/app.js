@@ -164,7 +164,7 @@ function avisarAlertasNuevas() {
     if (primeraCarga || a.estado !== 'pendiente') continue;
     showToast(a.titulo);
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(`Banco Techo · ${a.titulo}`, { body: a.mensaje });
+      new Notification(`Banco BBUA · ${a.titulo}`, { body: a.mensaje });
     }
   }
   primeraCarga = false;
