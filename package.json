@@ -8,9 +8,16 @@
     "start": "node server/server.js",
     "dev": "node --watch server/server.js",
     "ataque": "node scripts/card-tester.js",
-    "pruebas": "node scripts/probar-afd.js"
+    "pruebas": "node scripts/probar-afd.js",
+    "test": "node scripts/pipeline.js",
+    "test:dev": "node --test \"test/dev/**/*.test.js\"",
+    "test:qa": "node --test \"test/qa/**/*.test.js\"",
+    "test:uat": "node --test \"test/uat/**/*.test.js\""
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.65.0"
   }
 }

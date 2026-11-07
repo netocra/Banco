@@ -11,8 +11,6 @@ function guardar() {
 }
 
 const fmt = (n) => n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-// Color estable por producto para la miniatura
-const hue = (id) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
 const producto = (id) => PRODUCTOS.find((p) => p.id === id);
 const total = () => Object.entries(carrito).reduce((s, [id, c]) => s + (producto(id)?.precio ?? 0) * c, 0);
 
@@ -47,11 +45,11 @@ const IMAGENES = {
 function renderCatalogo() {
   document.getElementById('catalogo').innerHTML = PRODUCTOS.map((p) => `
     <article class="producto">
-      <div class="producto-img">
+      <div class="producto-img" data-nombre="${p.nombre.split(' ')[0]}">
         <img src="${IMAGENES[p.id] ?? 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80'}"
              alt="${p.nombre}"
              loading="lazy"
-             onerror="this.src='https://placehold.co/400x300?text=${encodeURIComponent(p.nombre)}'" />
+             onerror="this.onerror = null; this.parentElement.classList.add('sin-imagen'); this.remove()" />
       </div>
       <h3>${p.nombre}</h3>
       <p class="precio">${fmt(p.precio)}</p>
