@@ -1,4 +1,4 @@
-// QA · TechoStore, archivos estáticos, eventos en tiempo real y robustez del servidor
+// QA · Amason, archivos estáticos, eventos en tiempo real y robustez del servidor
 import { test, describe, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -43,13 +43,13 @@ describe('Catálogo y compra', () => {
     const r = await app.pedir('/api/tienda/compra', { cuerpo: { items: { laptop: 1 }, tarjeta: C, monto: 1, comercio: 'Otro' } });
     assert.equal(r.datos.motivo, 'Fondos insuficientes');
     const m = app.usuarios.carlos.movimientos.at(-1);
-    assert.equal(m.comercio, 'TechoStore');
+    assert.equal(m.comercio, 'Amason');
     assert.equal(m.monto, -15999);
   });
 
   test('concepto: nombre del producto o número de artículos', async () => {
     await app.comprar({ mouse: 1 }, C);
-    assert.match(app.usuarios.carlos.movimientos.at(-1).descripcion, /^Mouse inalámbrico · TechoStore$/);
+    assert.match(app.usuarios.carlos.movimientos.at(-1).descripcion, /^Mouse inalámbrico · Amason$/);
     await app.comprar({ mouse: 2, cable: 1 }, C);
     assert.match(app.usuarios.carlos.movimientos.at(-1).descripcion, /^3 artículos/);
   });

@@ -1,4 +1,4 @@
-// ===== SERVIDOR: Banco BBUA + TechoStore =====
+// ===== SERVIDOR: Banco BBUA + Amason =====
 // Sin dependencias: sólo módulos nativos de Node.
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -127,7 +127,7 @@ async function api(req, res, url) {
     return json(res, 200, procesarPago(await leerCuerpo(req)));
   }
 
-  // TechoStore
+  // Amason
   if (metodo === 'GET' && ruta === '/api/tienda/productos') return json(res, 200, PRODUCTOS);
   if (metodo === 'POST' && ruta === '/api/tienda/compra') {
     return json(res, 200, comprar(await leerCuerpo(req)));
@@ -284,7 +284,7 @@ export function crearServidor() {
 
 // Sólo escucha si se ejecuta directamente (las pruebas importan crearServidor)
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) crearServidor().listen(PUERTO, () => {
-  console.log(`\nBanco BBUA    → http://localhost:${PUERTO}/banco/`);
-  console.log(`TechoStore     → http://localhost:${PUERTO}/tienda/`);
+  console.log(`\nBanco BBUA     → http://localhost:${PUERTO}/banco/`);
+  console.log(`Amason         → http://localhost:${PUERTO}/tienda/`);
   console.log(`Definición AFD → http://localhost:${PUERTO}/api/afd\n`);
 });

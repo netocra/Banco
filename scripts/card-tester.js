@@ -1,6 +1,6 @@
 // ===== SIMULADOR DE ATAQUE "CARD TESTING" EN TECHOSTORE =====
 // Caso: alguien ya tiene los datos completos de una tarjeta (número, vencimiento y CVV)
-// y automatiza compras en TechoStore. Dos modos:
+// y automatiza compras en Amason. Dos modos:
 //   rafaga (default): compra artículos baratos varias veces seguidas para comprobar que
 //                     la tarjeta funciona y, si pasan, intenta una compra cara.
 //   saldo:            intenta compras grandes y va bajando el monto hasta que una pase
@@ -87,7 +87,7 @@ async function main() {
   const productos = await (await fetch(`${TIENDA}/productos`)).json();
   const catalogo = Object.fromEntries(productos.map((p) => [p.id, p]));
 
-  console.log(color('1', `\nTarjeta: ${mascara(tarjeta.numero)}  vence ${tarjeta.exp}  ·  comercio: TechoStore\n`));
+  console.log(color('1', `\nTarjeta: ${mascara(tarjeta.numero)}  vence ${tarjeta.exp}  ·  comercio: Amason\n`));
 
   if (opciones.modo === 'saldo') await sondeoDeSaldo(catalogo);
   else await rafaga(catalogo);

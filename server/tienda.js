@@ -2,7 +2,7 @@
 // La tienda calcula el total con sus propios precios y cobra a través de la pasarela del banco.
 import { procesarPago } from './pagos.js';
 
-export const COMERCIO = 'TechoStore';
+export const COMERCIO = 'Amason';
 export const MAX_POR_PRODUCTO = 99;
 
 export const PRODUCTOS = [
