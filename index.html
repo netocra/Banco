@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Banco Techo — Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <span class="nav-brand">🏦 Banco Techo</span>
+    <div class="nav-right">
+      <span id="nav-user"></span>
+      <button id="btn-logout" class="btn-ghost">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <main class="dashboard">
+
+    <!-- Tarjeta de débito -->
+    <section class="debit-card">
+      <!-- Fila superior -->
+      <div class="dc-top">
+        <span class="dc-bank-name">🏦 Banco Techo</span>
+        <span class="dc-chip">▣</span>
+      </div>
+
+      <!-- Número de tarjeta -->
+      <p id="display-account" class="dc-number"></p>
+
+      <!-- Fila inferior -->
+      <div class="dc-bottom">
+        <div class="dc-info">
+          <span class="dc-label">Titular</span>
+          <span id="nav-user-card" class="dc-value"></span>
+        </div>
+        <div class="dc-info dc-info--right">
+          <span class="dc-label">Saldo disponible</span>
+          <span id="display-balance" class="dc-balance">$0.00</span>
+        </div>
+        <div class="dc-logo-wrap">
+          <div class="dc-logo">VISA</div>
+          <button id="btn-toggle-visibility" class="dc-eye-btn" onclick="toggleVisibility()" title="Mostrar / ocultar saldo">
+            <svg id="icon-eye-open" class="dc-eye" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="12" cy="12" rx="10" ry="6" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="12" cy="12" r="2.8" fill="currentColor" opacity=".6"/>
+              <circle cx="12" cy="12" r="1.2" fill="currentColor"/>
+              <circle cx="13.2" cy="10.9" r=".55" fill="white" opacity=".7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Acciones rápidas -->
+    <section class="actions">
+      <button class="action-btn" onclick="openModal('modal-deposit')">
+        <span class="action-icon">⬇️</span>
+        Depositar
+      </button>
+      <button class="action-btn" onclick="openModal('modal-withdraw')">
+        <span class="action-icon">⬆️</span>
+        Retirar
+      </button>
+      <button class="action-btn" onclick="openModal('modal-transfer')">
+        <span class="action-icon">↔️</span>
+        Transferir
+      </button>
+    </section>
+
+    <!-- Historial de movimientos -->
+    <section class="card">
+      <h3 class="section-title">Últimos movimientos</h3>
+      <ul id="transaction-list" class="transaction-list">
+        <li class="empty-state">Sin movimientos aún.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <!-- ===== MODAL DEPÓSITO ===== -->
+  <div id="modal-deposit" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Depositar</h3>
+      <div class="field">
+        <label>Monto ($)</label>
+        <input type="number" id="deposit-amount" min="1" placeholder="0.00" />
+      </div>
+      <p id="deposit-error" class="error-msg hidden"></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modal-deposit')">Cancelar</button>
+        <button class="btn-primary" onclick="handleDeposit()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL RETIRO ===== -->
+  <div id="modal-withdraw" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Retirar</h3>
+      <div class="field">
+        <label>Monto ($)</label>
+        <input type="number" id="withdraw-amount" min="1" placeholder="0.00" />
+      </div>
+      <p id="withdraw-error" class="error-msg hidden"></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modal-withdraw')">Cancelar</button>
+        <button class="btn-primary" onclick="handleWithdraw()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL TRANSFERENCIA ===== -->
+  <div id="modal-transfer" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Transferir</h3>
+      <div class="field">
+        <label>Cuenta destino</label>
+        <input type="text" id="transfer-dest" placeholder="ej. ana" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>Monto ($)</label>
+        <input type="number" id="transfer-amount" min="1" placeholder="0.00" />
+      </div>
+      <p id="transfer-error" class="error-msg hidden"></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modal-transfer')">Cancelar</button>
+        <button class="btn-primary" onclick="handleTransfer()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de notificación -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

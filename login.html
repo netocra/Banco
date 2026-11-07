@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Banco Techo — Iniciar sesión</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="login-page">
+
+  <div class="login-card">
+    <div class="bank-logo">🏦</div>
+    <h1>Banco Techo</h1>
+    <p class="subtitle">Tu banco digital de confianza</p>
+
+    <form id="form-login">
+      <div class="field">
+        <label>Usuario</label>
+        <input type="text" id="input-user" placeholder="ej. carlos" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="input-pass" placeholder="••••••" />
+      </div>
+      <p id="login-error" class="error-msg hidden">Usuario o contraseña incorrectos.</p>
+      <button type="submit" class="btn-primary">Iniciar sesión</button>
+    </form>
+
+    <p class="hint">Demo: <strong>carlos</strong> / <strong>1234</strong></p>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>
